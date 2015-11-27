@@ -14,6 +14,9 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#ifndef FD_SETSIZE //I2P
+#define FD_SETSIZE 1024 // max number of fds in fd_set //I2P
+#endif //I2P
 #include <winsock2.h>
 #include <mswsock.h>
 #include <ws2tcpip.h>

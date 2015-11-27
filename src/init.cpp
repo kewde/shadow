@@ -28,6 +28,10 @@
 #include <signal.h>
 #endif
 
+#ifdef USE_NATIVE_I2P
+#include "i2p.h"
+#endif
+
 namespace fs = boost::filesystem;
 
 CWallet* pwalletMain;
@@ -175,6 +179,15 @@ bool static InitWarning(const std::string &str)
     uiInterface.ThreadSafeMessageBox(str, _("ShadowCoin"), CClientUIInterface::BTN_OK | CClientUIInterface::ICON_WARNING | CClientUIInterface::MODAL);
     return true;
 }
+
+#ifdef USE_NATIVE_I2P
+bool static BindNativeI2P(/*bool fError = true*/)
+{
+    if (IsLimited(NET_NATIVE_I2P))
+        return false;
+    return BindListenNativeI2P();
+}
+#endif
 
 
 bool static Bind(const CService &addr, bool fError = true)
@@ -382,6 +395,21 @@ bool AppInit2(boost::thread_group& threadGroup)
         return false;
 
     // ********************************************************* Step 2: parameter interactions
+    #ifdef USE_NATIVE_I2P
+        if (GetBoolArg(I2P_SAM_GENERATE_DESTINATION_PARAM, false))
+        {
+            const SAM::FullDestination generatedDest = I2PSession::Instance().destGenerate();
+            /* uiInterface.ThreadSafeShowGeneratedI2PAddress(
+                        "Generated I2P address",
+                        generatedDest.pub,
+                        generatedDest.priv,
+                        I2PSession::GenerateB32AddressFromDestination(generatedDest.pub),
+                        GetConfigFile().string()); */
+         //LogPrintf("Generated I2P address destination="+ generatedDest.pub + " private=" +  generatedDest.priv + " B32-Address=" + I2PSession::GenerateB32AddressFromDestination(generatedDest.pub) + " ConfigFIle=" + GetConfigFile().string());
+            return false;
+        }
+    #endif
+
 
     nNodeLifespan = GetArg("-addrlifespan", 7);
 
@@ -721,7 +749,11 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             enum Network net = ParseNetwork(snet);
             if (net == NET_UNROUTABLE)
-                return InitError(strprintf(_("Unknown network specified in -onlynet: '%s'"), snet.c_str()));
+#ifdef USE_NATIVE_I2P
+                return InitError(strprintf(_("Unknown network specified in -onlynet but I2P native specified: '%s'"), snet.c_str()));
+         #else
+                return InitError(strprintf(_("Unknown network specified in -onlynet but I2P failed: '%s'"), snet.c_str()));
+#endif
             nets.insert(net);
         };
         for (int n = 0; n < NET_MAX; n++)
@@ -789,6 +821,11 @@ bool AppInit2(boost::thread_group& threadGroup)
                 fBound |= Bind(CService(in6addr_any, GetListenPort()), false);
             if (!IsLimited(NET_IPV4))
                 fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound);
+
+            #ifdef USE_NATIVE_I2P
+                        if (!IsLimited(NET_NATIVE_I2P))
+                            fBound |= BindNativeI2P();
+            #endif
         };
         if (!fBound)
             return InitError(_("Failed to listen on any port. Use -listen=0 if you want this."));

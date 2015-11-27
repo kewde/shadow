@@ -22,6 +22,12 @@ static const int DEFAULT_CONNECT_TIMEOUT = 5000;
 #undef SetPort
 #endif
 
+#ifdef USE_NATIVE_I2P
+#define NATIVE_I2P_DESTINATION_SIZE     516
+#define NATIVE_I2P_B32ADDR_SIZE         60
+#define NATIVE_I2P_NET_STRING           "native_i2p"
+#endif
+
 enum Network
 {
     NET_UNROUTABLE = 0,
@@ -29,7 +35,9 @@ enum Network
     NET_IPV6,
     NET_TOR,
     NET_I2P,
-    
+#ifdef USE_NATIVE_I2P
+    NET_NATIVE_I2P,
+#endif
     NET_MAX,
 };
 
@@ -38,6 +46,10 @@ class CNetAddr
 {
     protected:
         unsigned char ip[16]; // in network byte order
+
+#ifdef USE_NATIVE_I2P
+        unsigned char i2pDest[NATIVE_I2P_DESTINATION_SIZE];
+#endif
 
     public:
         CNetAddr();
@@ -87,6 +99,10 @@ class CNetAddr
         CNetAddr(const struct in6_addr& pipv6Addr);
         bool GetIn6Addr(struct in6_addr* pipv6Addr) const;
 
+#ifdef USE_NATIVE_I2P
+        bool IsNativeI2P() const;
+        std::string GetI2PDestination() const;
+#endif
         friend bool operator==(const CNetAddr& a, const CNetAddr& b);
         friend bool operator!=(const CNetAddr& a, const CNetAddr& b);
         friend bool operator<(const CNetAddr& a, const CNetAddr& b);
@@ -94,6 +110,12 @@ class CNetAddr
         IMPLEMENT_SERIALIZE
             (
              READWRITE(FLATDATA(ip));
+#ifdef USE_NATIVE_I2P
+             if (!(nType & SER_IPADDRONLY))
+             {
+                READWRITE(FLATDATA(i2pDest));
+             }
+#endif
             )
 };
 
@@ -155,6 +177,12 @@ class CService : public CNetAddr
             (
              CService* pthis = const_cast<CService*>(this);
              READWRITE(FLATDATA(ip));
+#ifdef USE_NATIVE_I2P
+             if (!(nType & SER_IPADDRONLY))
+             {
+                 READWRITE(FLATDATA(i2pDest));
+             }
+#endif
              unsigned short portN = htons(port);
              READWRITE(portN);
              if (fRead)
@@ -178,6 +206,11 @@ bool Lookup(const char *pszName, std::vector<CService>& vAddr, int portDefault =
 bool LookupNumeric(const char *pszName, CService& addr, int portDefault = 0);
 bool ConnectSocket(const CService &addr, SOCKET& hSocketRet, int nTimeout, bool *outProxyConnectionFailed = 0);
 bool ConnectSocketByName(CService &addr, SOCKET& hSocketRet, const char *pszDest, int portDefault, int nTimeout, bool *outProxyConnectionFailed = 0);
+
+#ifdef USE_NATIVE_I2P
+bool SetSocketOptions(SOCKET& hSocket);
+#endif
+
 /** Return readable error string for a network error code */
 std::string NetworkErrorString(int err);
 /** Close socket and set hSocket to INVALID_SOCKET */

@@ -2,7 +2,7 @@ TEMPLATE = app
 TARGET = shadow
 VERSION = 1.3.3.6
 INCLUDEPATH += src src/json src/qt
-DEFINES += BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
+DEFINES += BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE USE_NATIVE_I2P
 CONFIG += no_include_pwd
 CONFIG += thread
 
@@ -161,6 +161,14 @@ QMAKE_CLEAN += $$PWD/src/leveldb/libleveldb.a; cd $$PWD/src/leveldb ; $(MAKE) cl
     PRE_TARGETDEPS += $$OUT_PWD/build/build.h
     QMAKE_EXTRA_TARGETS += genbuild
     DEFINES += HAVE_BUILD_INFO
+}
+
+contains(DEFINES, USE_NATIVE_I2P) {
+    geni2pbuild.depends = FORCE
+    geni2pbuild.commands = cd $$PWD; /bin/sh share/inc_build_number.sh src/i2pbuild.h bitcoin-qt-build-number
+    geni2pbuild.target = src/i2pbuild.h
+    PRE_TARGETDEPS += src/i2pbuild.h
+    QMAKE_EXTRA_TARGETS += geni2pbuild
 }
 
 contains(USE_O3, 1) {
@@ -361,6 +369,23 @@ FORMS += \
     src/qt/forms/transactiondescdialog.ui \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui
+    src/qt/forms/adrenalinenodeconfigdialog.ui \
+#  ^ last line new  for I2P, + following :
+
+contains(DEFINES, USE_NATIVE_I2P) {
+HEADERS += src/i2p.h \
+        src/i2psam.h \
+        src/qt/showi2paddresses.h \
+        src/qt/i2poptionswidget.h
+
+SOURCES += src/i2p.cpp \
+        src/i2psam.cpp \
+        src/qt/showi2paddresses.cpp \
+        src/qt/i2poptionswidget.cpp
+
+FORMS += src/qt/forms/showi2paddresses.ui \
+        src/qt/forms/i2poptionswidget.ui
+}
 
 
 CODECFORTR = UTF-8

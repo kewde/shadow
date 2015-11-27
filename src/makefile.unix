@@ -2,13 +2,13 @@
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-USE_UPNP:=0
+USE_UPNP:=1
 
 LINK:=$(CXX)
 ARCH:=$(system lscpu | head -n 1 | awk '{print $2}')
 
 DEFS=-DBOOST_SPIRIT_THREADSAFE
-
+DEFS=-DUSE_NATIVE_I2P
 DEFS += $(addprefix -I,$(CURDIR) $(CURDIR)/obj $(BOOST_INCLUDE_PATH) $(BDB_INCLUDE_PATH) $(OPENSSL_INCLUDE_PATH))
 LIBS = $(addprefix -L,$(BOOST_LIB_PATH) $(BDB_LIB_PATH) $(OPENSSL_LIB_PATH))
 
@@ -159,6 +159,10 @@ OBJS= \
     obj/state.o \
     obj/bloom.o 
 
+ifdef USE_NATIVE_I2P
+	OBJS += obj/i2p.o
+	OBJS += obj/i2psam.o
+endif
 
 all: shadowcoind
 
@@ -177,9 +181,21 @@ obj/txdb-leveldb.o: leveldb/libleveldb.a
 # auto-generated dependencies:
 -include obj/*.P
 
+
 obj/build.h: FORCE
 	/bin/sh ../share/genbuild.sh obj/build.h
+
+ifdef USE_NATIVE_I2P
+i2pbuild.h: FORCE
+	/bin/sh ../share/inc_build_number.sh i2pbuild.h ../bitcoind-build-number
+endif
+
+ifdef USE_NATIVE_I2P
+version.cpp: obj/build.h i2pbuild.h
+else
 version.cpp: obj/build.h
+endif
+
 DEFS += -DHAVE_BUILD_INFO
 
 obj/scrypt-x86.o: scrypt-x86.S
@@ -199,7 +215,7 @@ obj/%.o: %.cpp
 	rm -f $(@:%.o=%.d)
 
 shadowcoind: $(OBJS:obj/%=obj/%)
-	$(LINK) $(xCXXFLAGS) -o $@ $^ $(xLDFLAGS) $(LIBS)
+	$(LINK) $(xCXXFLAGS) -DUSE_NATIVE_I2P -o $@ $^ $(xLDFLAGS) $(LIBS)
 
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))

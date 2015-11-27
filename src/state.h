@@ -44,6 +44,9 @@ enum
     THIN_STAKE          = (1 << 2),  // deprecated
     THIN_STEALTH        = (1 << 3),
     SMSG_RELAY          = (1 << 4),
+#ifdef USE_NATIVE_I2P
+    NODE_I2P     = (1 << 7),
+#endif
 };
 
 const int64_t GENESIS_BLOCK_TIME = 1405769613;
