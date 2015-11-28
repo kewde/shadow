@@ -189,7 +189,7 @@ obj/build.h: FORCE
 
 ifdef USE_NATIVE_I2P
 i2pbuild.h: FORCE
-	/bin/sh ../share/inc_build_number.sh i2pbuild.h ../bitcoind-build-number
+	/bin/sh ../share/inc_build_number.sh i2pbuild.h ../shadowd-build-number
 endif
 
 ifdef USE_NATIVE_I2P
