@@ -29,6 +29,7 @@
 #define SAM_INVALID_SOCKET      (-1)
 #define SAM_SOCKET_ERROR        (-1)
 
+#define SAM_DEFAULT_SESSION_NAME    "ShadowCoreClient"
 #define SAM_DEFAULT_ADDRESS         "127.0.0.1"
 #define SAM_DEFAULT_PORT            7656
 #define SAM_DEFAULT_MIN_VER         "3.0"

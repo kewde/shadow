@@ -2,13 +2,13 @@
 # Distributed under the MIT/X11 software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-USE_UPNP:=1
+USE_NATIVE_I2P:=1
 
 LINK:=$(CXX)
 ARCH:=$(system lscpu | head -n 1 | awk '{print $2}')
 
 DEFS=-DBOOST_SPIRIT_THREADSAFE
-DEFS += -DUSE_NATIVE_I2P
+
 DEFS += $(addprefix -I,$(CURDIR) $(CURDIR)/obj $(BOOST_INCLUDE_PATH) $(BDB_INCLUDE_PATH) $(OPENSSL_INCLUDE_PATH))
 LIBS = $(addprefix -L,$(BOOST_LIB_PATH) $(BDB_LIB_PATH) $(OPENSSL_LIB_PATH))
 
@@ -177,6 +177,8 @@ leveldb/libleveldb.a:
 	@echo "Building LevelDB ..."; cd leveldb; make libleveldb.a libmemenv.a; cd ..;
 obj/txdb-leveldb.o: leveldb/libleveldb.a
 
+# I2P support
+DEFS += -DUSE_NATIVE_I2P
 
 # auto-generated dependencies:
 -include obj/*.P
@@ -215,7 +217,7 @@ obj/%.o: %.cpp
 	rm -f $(@:%.o=%.d)
 
 shadowcoind: $(OBJS:obj/%=obj/%)
-	$(LINK) $(xCXXFLAGS) -DUSE_NATIVE_I2P -o $@ $^ $(xLDFLAGS) $(LIBS)
+	$(LINK) $(xCXXFLAGS) -o $@ $^ $(xLDFLAGS) $(LIBS)
 
 
 TESTOBJS := $(patsubst test/%.cpp,obj-test/%.o,$(wildcard test/*.cpp))
@@ -233,6 +235,9 @@ test_shadow: $(TESTOBJS) $(filter-out obj/init.o obj/shadowcoind.o,$(OBJS:obj/%=
 	$(LINK) $(xCXXFLAGS) -o $@ $(LIBPATHS) $^ $(TESTLIBS) $(xLDFLAGS) $(LIBS)
 
 clean:
+ifdef USE_NATIVE_I2P
+	-rm -f i2pbuild.h
+endif
 	-rm -f shadowcoind
 	-rm -f obj/*.o
 	-rm -f obj/*.P

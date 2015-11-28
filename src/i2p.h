@@ -8,21 +8,21 @@
 #include "i2psam.h"
 
 #define I2P_SESSION_NAME_PARAM          "-i2psessionname"
-#define I2P_SESSION_NAME_DEFAULT        "Bitcoin-client"
+#define I2P_SESSION_NAME_DEFAULT        SAM_DEFAULT_SESSION_NAME
 
-#define I2P_SAM_HOST_PARAM              "-samhost"
+#define I2P_SAM_HOST_PARAM              "-i2psamhost"
 #define I2P_SAM_HOST_DEFAULT            SAM_DEFAULT_ADDRESS
 
-#define I2P_SAM_PORT_PARAM              "-samport"
+#define I2P_SAM_PORT_PARAM              "-i2psamport"
 #define I2P_SAM_PORT_DEFAULT            SAM_DEFAULT_PORT
 
-#define I2P_SAM_MY_DESTINATION_PARAM    "-mydestination"
+#define I2P_SAM_MY_DESTINATION_PARAM    "-i2pmydestination"
 #define I2P_SAM_MY_DESTINATION_DEFAULT  SAM_GENERATE_MY_DESTINATION
 
 #define I2P_SAM_I2P_OPTIONS_PARAM       "-i2poptions"
 #define I2P_SAM_I2P_OPTIONS_DEFAULT     SAM_DEFAULT_I2P_OPTIONS
 
-#define I2P_SAM_GENERATE_DESTINATION_PARAM "-generatei2pdestination"
+#define I2P_SAM_GENERATE_DESTINATION_PARAM "-i2pgeneratedestination"
 
 namespace SAM
 {

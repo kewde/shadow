@@ -322,6 +322,14 @@ std::string HelpMessage()
     strUsage += "  -nosmsg                                  " + _("Disable secure messaging.") + "\n";
     strUsage += "  -debugsmsg                               " + _("Log extra debug messages.") + "\n";
     strUsage += "  -smsgscanchain                           " + _("Scan the block chain for public key addresses on startup.") + "\n";
+
+    strUsage += "\n" + _("I2P Options::") + "\n";
+    strUsage += "  -onlynet=native_i2p                       " + _("Enable I2P only mode.") + "\n";
+    strUsage += "  -i2pgeneratedestination                " + _("Generate an I2P destination, print it and exit.")+ "\n";
+    strUsage += "  -i2psessionname=<session name>         " + _("Name of an I2P session. If it is not specified, value will be \"ShadowCoreClient\"") + "\n";
+    strUsage += "  -i2psamhost=<ip or host name>           " + _("Address of the SAM bridge host. If it is not specified, value will be \"127.0.0.1\".") + "\n";
+    strUsage += "  -i2psamport=<port>                    " + _("Port number of the SAM bridge host. If it is not specified, value will be \"7656\".") + "\n";
+    strUsage += "  -i2pmydestination=<pub+priv i2p-keys>    " + _("Your full destination (public+private keys). If it is not specified, the client will generate a random destination for you.") + "\n";
     
     return strUsage;
 }
