@@ -547,6 +547,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     fDebugChain = GetBoolArg("-debugchain");
     fDebugRingSig = GetBoolArg("-debugringsig");
     fDebugPoS = GetBoolArg("-debugpos");
+    fDebugI2P = GetBoolArg("-debugi2p");
 
     fNoSmsg = GetBoolArg("-nosmsg");
     

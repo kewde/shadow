@@ -31,6 +31,7 @@ bool fDebugSmsg = false;
 bool fDebugChain = false;
 bool fDebugRingSig = false;
 bool fDebugPoS = false;
+bool fDebugI2P = false;
 bool fNoSmsg = false;
 bool fPrintToConsole = false;
 bool fPrintToDebugLog = true;

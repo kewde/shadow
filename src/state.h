@@ -89,6 +89,7 @@ extern bool fDebugSmsg;
 extern bool fDebugChain;
 extern bool fDebugRingSig;
 extern bool fDebugPoS;
+extern bool fDebugI2P;
 extern bool fNoSmsg;
 extern bool fPrintToConsole;
 extern bool fPrintToDebugLog;
