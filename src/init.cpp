@@ -414,7 +414,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                         generatedDest.priv,
                         I2PSession::GenerateB32AddressFromDestination(generatedDest.pub),
                         GetConfigFile().string()); */
-         //LogPrintf("Generated I2P address destination="+ generatedDest.pub + " private=" +  generatedDest.priv + " B32-Address=" + I2PSession::GenerateB32AddressFromDestination(generatedDest.pub) + " ConfigFIle=" + GetConfigFile().string());
+        //LogPrintf("Generated I2P address destination="+ generatedDest.pub + " private=" +  generatedDest.priv + " B32-Address=" + I2PSession::GenerateB32AddressFromDestination(generatedDest.pub) + " ConfigFIle=" + GetConfigFile().string());
+	LogPrintf("\nGenerating I2P Destination... \nDestination=%s \nPrivate=%s \nB32-Address=%s\n",generatedDest.pub, generatedDest.priv, I2PSession::GenerateB32AddressFromDestination(generatedDest.pub));
         return false;
     }
 #endif
@@ -828,10 +829,6 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (fI2PEnabled) LogPrintf("I2P Enabled - Starting...\n");
     if (!IsLimited(NET_NATIVE_I2P) && fI2PEnabled)
         fBound |= BindNativeI2P();
-    if (!fBound)
-            return InitError(_("I2P Failed"));
-    else
-            SetReachable(NET_NATIVE_I2P);
 #endif
 
     if (!fNoListen)
