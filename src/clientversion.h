@@ -8,8 +8,8 @@
 // These need to be macros, as version.cpp's and bitcoin-qt.rc's voodoo requires it
 #define CLIENT_VERSION_MAJOR       1
 #define CLIENT_VERSION_MINOR       3
-#define CLIENT_VERSION_REVISION    4 // 3 -> 4 I2P
-#define CLIENT_VERSION_BUILD       6
+#define CLIENT_VERSION_REVISION    3
+#define CLIENT_VERSION_BUILD       7 // 6 -> 7 I2P
 
 // Converts the parameter X to a string after macro replacement on X has been performed.
 // Don't merge these into one macro!
