@@ -205,5 +205,3 @@ std::string I2PSession::GenerateB32AddressFromDestination(const std::string& des
         result.erase(pos, 1);
     return result;
 }
-
-

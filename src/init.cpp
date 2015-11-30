@@ -324,12 +324,13 @@ std::string HelpMessage()
     strUsage += "  -smsgscanchain                           " + _("Scan the block chain for public key addresses on startup.") + "\n";
 
     strUsage += "\n" + _("I2P Options::") + "\n";
-    strUsage += "  -onlynet=native_i2p                       " + _("Enable I2P only mode.") + "\n";
-    strUsage += "  -i2pgeneratedestination                " + _("Generate an I2P destination, print it and exit.")+ "\n";
-    strUsage += "  -i2psessionname=<session name>         " + _("Name of an I2P session. If it is not specified, value will be \"ShadowCoreClient\"") + "\n";
-    strUsage += "  -i2psamhost=<ip or host name>           " + _("Address of the SAM bridge host. If it is not specified, value will be \"127.0.0.1\".") + "\n";
+    strUsage += "  -i2p=1                                " + _("Enable I2P.") + "\n";
+    strUsage += "  -onlynet=native_i2p                   " + _("Enable I2P only mode.") + "\n";
+    strUsage += "  -i2pgeneratedestination               " + _("Generate an I2P destination, print it and exit.")+ "\n";
+    strUsage += "  -i2psessionname=<session name>        " + _("Name of an I2P session. If it is not specified, value will be \"ShadowCoreClient\"") + "\n";
+    strUsage += "  -i2psamhost=<ip or host name>         " + _("Address of the SAM bridge host. If it is not specified, value will be \"127.0.0.1\".") + "\n";
     strUsage += "  -i2psamport=<port>                    " + _("Port number of the SAM bridge host. If it is not specified, value will be \"7656\".") + "\n";
-    strUsage += "  -i2pmydestination=<pub+priv i2p-keys>    " + _("Your full destination (public+private keys). If it is not specified, the client will generate a random destination for you.") + "\n";
+    strUsage += "  -i2pmydestination=<pub+priv i2p-keys> " + _("Your full destination (public+private keys). If it is not specified, the client will generate a random destination for you.") + "\n";
     
     return strUsage;
 }
@@ -403,20 +404,20 @@ bool AppInit2(boost::thread_group& threadGroup)
         return false;
 
     // ********************************************************* Step 2: parameter interactions
-    #ifdef USE_NATIVE_I2P
-        if (GetBoolArg(I2P_SAM_GENERATE_DESTINATION_PARAM, false))
-        {
-            const SAM::FullDestination generatedDest = I2PSession::Instance().destGenerate();
-            /* uiInterface.ThreadSafeShowGeneratedI2PAddress(
+#ifdef USE_NATIVE_I2P
+    if (GetBoolArg(I2P_SAM_GENERATE_DESTINATION_PARAM, false))
+    {
+        const SAM::FullDestination generatedDest = I2PSession::Instance().destGenerate();
+        /* uiInterface.ThreadSafeShowGeneratedI2PAddress(
                         "Generated I2P address",
                         generatedDest.pub,
                         generatedDest.priv,
                         I2PSession::GenerateB32AddressFromDestination(generatedDest.pub),
                         GetConfigFile().string()); */
          //LogPrintf("Generated I2P address destination="+ generatedDest.pub + " private=" +  generatedDest.priv + " B32-Address=" + I2PSession::GenerateB32AddressFromDestination(generatedDest.pub) + " ConfigFIle=" + GetConfigFile().string());
-            return false;
-        }
-    #endif
+        return false;
+    }
+#endif
 
 
     nNodeLifespan = GetArg("-addrlifespan", 7);
@@ -540,6 +541,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         SoftSetBoolArg("-debugsmsg", true);
         SoftSetBoolArg("-debugchain", true);
         SoftSetBoolArg("-debugringsig", true);
+        SoftSetBoolArg("-debugi2p", true);
     };
 
     fDebugNet = GetBoolArg("-debugnet");
@@ -751,12 +753,22 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     nBloomFilterElements = GetArg("-bloomfilterelements", 1536);
 
+#ifdef USE_NATIVE_I2P
+    bool fI2PEnabled = GetBoolArg("-i2p", false);
+#endif
+
     if (mapArgs.count("-onlynet"))
     {
         std::set<enum Network> nets;
         BOOST_FOREACH(std::string snet, mapMultiArgs["-onlynet"])
         {
             enum Network net = ParseNetwork(snet);
+#ifdef USE_NATIVE_I2P
+            if (net == NET_NATIVE_I2P)
+            {
+                fI2PEnabled = true;
+            }
+#endif
             if (net == NET_UNROUTABLE)
 #ifdef USE_NATIVE_I2P
                 return InitError(strprintf(_("Unknown network specified in -onlynet but I2P native specified: '%s'"), snet.c_str()));
@@ -779,7 +791,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         addrProxy = CService(mapArgs["-proxy"], 9050);
         if (!addrProxy.IsValid())
             return InitError(strprintf(_("Invalid -proxy address: '%s'"), mapArgs["-proxy"]));
-        
+
         SetProxy(NET_IPV4, addrProxy);
         SetProxy(NET_IPV6, addrProxy);
         SetNameProxy(addrProxy);
@@ -810,6 +822,18 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
 
     bool fBound = false;
+
+#ifdef USE_NATIVE_I2P
+    //Regardless of users choice on binding, listening, discovery or dns - attempt to start I2P if enabled.
+    if (fI2PEnabled) LogPrintf("I2P Enabled - Starting...\n");
+    if (!IsLimited(NET_NATIVE_I2P) && fI2PEnabled)
+        fBound |= BindNativeI2P();
+    if (!fBound)
+            return InitError(_("I2P Failed"));
+    else
+            SetReachable(NET_NATIVE_I2P);
+#endif
+
     if (!fNoListen)
     {
         std::string strError;
@@ -830,11 +854,6 @@ bool AppInit2(boost::thread_group& threadGroup)
                 fBound |= Bind(CService(in6addr_any, GetListenPort()), false);
             if (!IsLimited(NET_IPV4))
                 fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound);
-
-            #ifdef USE_NATIVE_I2P
-                        if (!IsLimited(NET_NATIVE_I2P))
-                            fBound |= BindNativeI2P();
-            #endif
         };
         if (!fBound)
             return InitError(_("Failed to listen on any port. Use -listen=0 if you want this."));
