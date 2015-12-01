@@ -641,13 +641,6 @@ var overviewPage = {
                      }
                  },
                  {
-                     name: 'I2P Management',
-                     fa: 'fa-key red fa-fw font-20px',
-                     fun: function () {
-                        $("#navitems [href=#i2p]").click();
-                     }
-                 },
-                 {
                      name: 'Options',
                      fa: 'fa-wrench red fa-fw font-20px',
                      fun: function () {
@@ -854,7 +847,7 @@ var optionsPage = {
             if(element.length == 0)
             {
                 if(option.indexOf('opt') == -1)
-                    alert('Option element not available for ' + option);
+                    console.log('Option element not available for ' + option);
 
                 continue;
             }
