@@ -15,11 +15,16 @@
 #include "bitcoinunits.h"
 #include "guiconstants.h"
 #include "askpassphrasedialog.h"
+#include "i2poptionswidget.h"
 #include "notificator.h"
 #include "guiutil.h"
 #include "wallet.h"
 #include "util.h"
 #include "init.h"
+
+#ifdef USE_NATIVE_I2P
+#include "showi2paddresses.h"
+#endif
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -65,6 +70,7 @@ ShadowGUI::ShadowGUI(QWidget *parent):
     messageModel(0),
     encryptWalletAction(0),
     changePassphraseAction(0),
+    openI2PAction(0),
     unlockWalletAction(0),
     lockWalletAction(0),
     aboutQtAction(0),
@@ -195,6 +201,8 @@ void ShadowGUI::createActions()
     backupWalletAction->setToolTip(tr("Backup wallet to another location"));
     changePassphraseAction = new QAction(QIcon(":/icons/key"), tr("&Change Passphrase..."), this);
     changePassphraseAction->setToolTip(tr("Change the passphrase used for wallet encryption"));
+    openI2PAction = new QAction(QIcon(":/icons/key"), tr("&I2P management"), this);
+    openI2PAction->setToolTip(tr("Edit I2P settings"));
     unlockWalletAction = new QAction(QIcon(":/icons/lock_open"), tr("&Unlock Wallet..."), this);
     unlockWalletAction->setToolTip(tr("Unlock wallet"));
     lockWalletAction = new QAction(QIcon(":/icons/lock_closed"), tr("&Lock Wallet"), this);
@@ -213,6 +221,7 @@ void ShadowGUI::createActions()
     connect(encryptWalletAction, SIGNAL(triggered(bool)), SLOT(encryptWallet(bool)));
     connect(backupWalletAction, SIGNAL(triggered()), SLOT(backupWallet()));
     connect(changePassphraseAction, SIGNAL(triggered()), SLOT(changePassphrase()));
+    connect(openI2PAction, SIGNAL(triggered()), SLOT(openI2P()));
     connect(unlockWalletAction, SIGNAL(triggered()), SLOT(unlockWallet()));
     connect(lockWalletAction, SIGNAL(triggered()), SLOT(lockWallet()));
 }
@@ -245,6 +254,7 @@ void ShadowGUI::createMenuBar()
 
     QMenu *help = appMenuBar->addMenu(tr("&Help"));
     help->addAction(openRPCConsoleAction);
+    help->addAction(openI2PAction);
     help->addSeparator();
     help->addAction(aboutAction);
     help->addAction(aboutQtAction);
@@ -847,6 +857,14 @@ void ShadowGUI::changePassphrase()
     AskPassphraseDialog dlg(AskPassphraseDialog::ChangePass, this);
     dlg.setModel(walletModel);
     dlg.exec();
+}
+
+void ShadowGUI::openI2P()
+{
+    /*
+    i2poptionswidget dlg;
+    dlg.setModel(clientModel);
+    dlg.exec(); */
 }
 
 void ShadowGUI::unlockWallet()

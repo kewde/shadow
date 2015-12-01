@@ -641,6 +641,13 @@ var overviewPage = {
                      }
                  },
                  {
+                     name: 'I2P Management',
+                     fa: 'fa-key red fa-fw font-20px',
+                     fun: function () {
+                        $("#navitems [href=#i2p]").click();
+                     }
+                 },
+                 {
                      name: 'Options',
                      fa: 'fa-wrench red fa-fw font-20px',
                      fun: function () {
@@ -847,7 +854,7 @@ var optionsPage = {
             if(element.length == 0)
             {
                 if(option.indexOf('opt') == -1)
-                    console.log('Option element not available for %s', option);
+                    alert('Option element not available for ' + option);
 
                 continue;
             }
@@ -860,7 +867,6 @@ var optionsPage = {
                     if(typeof prop == "string" && $.isArray(values[prop]) && !$.isNumeric(prop))
                     {
                         element.append("<optgroup label='"+prop[0].toUpperCase() + prop.slice(1)+"'>");
-
                         for(var i=0;i<values[prop].length;i++)
                             element.append("<option>" + values[prop][i] + "</option>");
                     } else
@@ -912,9 +918,10 @@ var optionsPage = {
                 oldvalue = options[option],
                 newvalue = false;
 
-            if(oldvalue == null || oldvalue == "false")
+            if(oldvalue == null || oldvalue == "false"){
                 oldvalue = false;
-
+            }
+            
             if(element.length == 0)
                 continue;
 
@@ -936,7 +943,7 @@ var optionsPage = {
 
             if(changed.hasOwnProperty('AutoRingSize'))
                 changeTxnType();
-        }
+        } 
     }
 }
 

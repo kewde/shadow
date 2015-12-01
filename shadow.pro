@@ -369,8 +369,7 @@ FORMS += \
     src/qt/forms/transactiondescdialog.ui \
     src/qt/forms/askpassphrasedialog.ui \
     src/qt/forms/rpcconsole.ui
-    src/qt/forms/adrenalinenodeconfigdialog.ui \
-#  ^ last line new  for I2P, + following :
+
 
 contains(DEFINES, USE_NATIVE_I2P) {
 HEADERS += src/i2p.h \

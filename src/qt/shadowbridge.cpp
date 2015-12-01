@@ -363,8 +363,10 @@ void ShadowBridge::populateOptions()
 
     QVariantMap options;
 
-    for(option=0;option < optionsModel->rowCount(); option++)
+    for(option=0;option < optionsModel->rowCount(); option++) {
         options.insert(optionsModel->optionIDName(option), optionsModel->index(option).data(Qt::EditRole));
+        LogPrintf("Added new option%s\n", optionsModel->optionIDName(option).toStdString());
+    }
 
     option = 0;
 
@@ -1010,9 +1012,9 @@ QVariantMap ShadowBridge::userAction(QVariantMap action)
         QVariantMap value(it.value().toMap());
 
         for(int option = 0;option < optionsModel->rowCount(); option++)
-            if(value.contains(optionsModel->optionIDName(option)))
+            if(value.contains(optionsModel->optionIDName(option))){
                 optionsModel->setData(optionsModel->index(option), value.value(optionsModel->optionIDName(option)));
-
+            }
         populateOptions();
     }
 
