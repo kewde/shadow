@@ -710,7 +710,7 @@ void AddIncomingConnection(SOCKET hSocket, const CAddress& addr)
     {
         int nErr = WSAGetLastError();
         if (nErr != WSAEWOULDBLOCK)
-            printf("socket error accept failed: %d\n", nErr);
+            LogPrintf("socket error accept failed: %d\n", nErr);
     }
     else if (nInbound >= GetArg("-maxconnections", 125) - MAX_OUTBOUND_CONNECTIONS)
     {
@@ -722,12 +722,12 @@ void AddIncomingConnection(SOCKET hSocket, const CAddress& addr)
     }
     else if (CNode::IsBanned(addr))
     {
-        printf("connection from %s dropped (banned)\n", addr.ToString().c_str());
+        LogPrintf("connection from %s dropped (banned)\n", addr.ToString().c_str());
         closesocket(hSocket);
     }
     else
     {
-        printf("accepted connection %s\n", addr.ToString().c_str());
+        LogPrintf("accepted connection %s\n", addr.ToString().c_str());
         CNode* pnode = new CNode(hSocket, addr, "", true);
         pnode->AddRef();
         {
@@ -1104,20 +1104,20 @@ void ThreadSocketHandler()
                         }
                         else
                         {
-                            printf("Invalid incoming destination hash received (%s)\n", incomingAddr.c_str());
+                            LogPrintf("Invalid incoming destination hash received (%s)\n", incomingAddr.c_str());
                             closesocket(hI2PListenSocket);
                         }
                     }
                     else
                     {
-                        printf("Invalid incoming destination hash size received (%d)\n", nBytes);
+                        LogPrintf("Invalid incoming destination hash size received (%d)\n", nBytes);
                         closesocket(hI2PListenSocket);
                     }
                 }
                 else if (nBytes == 0)
                 {
                     // socket closed gracefully
-                    printf("I2P listen socket closed\n");
+                    LogPrintf("I2P listen socket closed\n");
                     closesocket(hI2PListenSocket);
                 }
                 else if (nBytes < 0)
@@ -1127,7 +1127,7 @@ void ThreadSocketHandler()
                     if (nErr == WSAEWOULDBLOCK || nErr == WSAEMSGSIZE || nErr == WSAEINTR || nErr == WSAEINPROGRESS)
                         continue;
 
-                    printf("I2P listen socket recv error %d\n", nErr);
+                    LogPrintf("I2P listen socket recv error %d\n", nErr);
                     closesocket(hI2PListenSocket);
                 }
                 hI2PListenSocket = INVALID_SOCKET;  // we've saved this socket in a CNode or closed it, so we can safety reset it anyway
@@ -2026,7 +2026,7 @@ public:
         BOOST_FOREACH(SOCKET& hI2PListenSocket, vhI2PListenSocket)
             if (hI2PListenSocket != INVALID_SOCKET)
                 if (closesocket(hI2PListenSocket) == SOCKET_ERROR)
-                    printf("closesocket(hI2PListenSocket) failed with error %d\n", WSAGetLastError());
+                    LogPrintf("closesocket(hI2PListenSocket) failed with error %d\n", WSAGetLastError());
 #endif
 
 #ifdef WIN32

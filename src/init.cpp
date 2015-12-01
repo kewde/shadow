@@ -414,8 +414,8 @@ bool AppInit2(boost::thread_group& threadGroup)
                         generatedDest.priv,
                         I2PSession::GenerateB32AddressFromDestination(generatedDest.pub),
                         GetConfigFile().string()); */
-        //LogPrintf("Generated I2P address destination="+ generatedDest.pub + " private=" +  generatedDest.priv + " B32-Address=" + I2PSession::GenerateB32AddressFromDestination(generatedDest.pub) + " ConfigFIle=" + GetConfigFile().string());
-	LogPrintf("\nGenerating I2P Destination... \nDestination=%s \nPrivate=%s \nB32-Address=%s\n",generatedDest.pub, generatedDest.priv, I2PSession::GenerateB32AddressFromDestination(generatedDest.pub));
+        LogPrintf("Generated I2P key-pair to console.\n");
+        fprintf(stdout, "\nGenerated I2P KeyPair... \nDestination=%s \n\nPrivate=%s \n\nB32-Address=%s\n", generatedDest.pub.c_str(), generatedDest.priv.c_str(), I2PSession::GenerateB32AddressFromDestination(generatedDest.pub).c_str());
         return false;
     }
 #endif
