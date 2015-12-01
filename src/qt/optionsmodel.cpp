@@ -168,6 +168,7 @@ void OptionsModel::Init()
     if (settings.contains("I2PSessionName"))
         SoftSetArg(I2P_SESSION_NAME_PARAM, settings.value("I2PSessionName").toString().toStdString());
 
+        
     i2pInboundQuantity        = settings.value(SAM_NAME_INBOUND_QUANTITY       , SAM_DEFAULT_INBOUND_QUANTITY       ).toInt();
     i2pInboundLength          = settings.value(SAM_NAME_INBOUND_LENGTH         , SAM_DEFAULT_INBOUND_LENGTH         ).toInt();
     i2pInboundLengthVariance  = settings.value(SAM_NAME_INBOUND_LENGTHVARIANCE , SAM_DEFAULT_INBOUND_LENGTHVARIANCE ).toInt();
@@ -201,7 +202,13 @@ void OptionsModel::Init()
         SoftSetArg(I2P_SAM_I2P_OPTIONS_PARAM, i2pOptionsTemp);
 
     i2pOptions = QString::fromStdString(i2pOptionsTemp);
-#endif
+    
+    const SAM::FullDestination generatedDest = I2PSession::Instance().destGenerate();
+    QString pub = QString::fromStdString(generatedDest.pub);
+    QString priv = QString::fromStdString(generatedDest.priv);
+    settings.setValue("b32", QString::fromStdString(I2PSession::Instance().GenerateB32AddressFromDestination(generatedDest.pub)));
+  #endif
+
 }
 
 int OptionsModel::rowCount(const QModelIndex & parent) const
@@ -281,6 +288,10 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
         case VisibleTransactions:
             return visibleTransactions;
 #ifdef USE_NATIVE_I2P
+        case b32:
+        {
+            return settings.value("b32", "NONE");
+        }
         case I2PUseI2POnly:
         {
             //ScopeGroupHelper s(settings, I2P_OPTIONS_SECTION_NAME);
@@ -374,6 +385,7 @@ QString OptionsModel::optionIDName(int row)
     case VisibleTransactions: return "VisibleTransactions";
 #ifdef USE_NATIVE_I2P
     case I2PUseI2POnly: return "I2PUseI2POnly";
+    case b32: return "b32";
     case I2PSAMHost: return "I2PSAMHost";
     case I2PSAMPort: return "I2PSAMPort";
     
@@ -410,7 +422,6 @@ int OptionsModel::optionNameID(QString name)
 
 bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, int role)
 {
-    LogPrintf("[i2p] SetData called\n");
     bool successful = true; /* set to false on parse error */
     if(role == Qt::EditRole)
     {
@@ -461,19 +472,15 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
 #ifdef USE_NATIVE_I2P
     case I2PUseI2POnly: 
 	settings.setValue("I2PUseI2POnly",value.toBool());
-    LogPrintf("[i2p] CHANGED I2POutboundPriority to %d\n", value.toBool());
 	break;
     case I2PSAMHost: 
 	settings.setValue("I2PSAMHost",value.toString());
-    LogPrintf("[i2p] CHANGED I2PSAMHost to %s\n", value.toString().toStdString().c_str());
 	break;
     case I2PSAMPort: 
 	settings.setValue("I2PSAMPort",value.toInt());
-    LogPrintf("[i2p] CHANGED SAM PORT to %i\n", value.toInt());
 	break;
     case I2PSessionName: 
 	settings.setValue("I2PSessionName",value.toString());
-    LogPrintf("[i2p] CHANGED I2PSessionName to %s\n", value.toString().toStdString().c_str());
 	break;
     case I2PInboundQuantity: 
 	settings.setValue(SAM_NAME_INBOUND_QUANTITY,value.toInt());
@@ -513,7 +520,6 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
 	break;
     case I2POutboundPriority: 
 	settings.setValue(SAM_NAME_OUTBOUND_PRIORITY,value.toInt());
-    LogPrintf("[i2p] CHANGED I2POutboundPriority\n");
 	break;
 #endif
         case Fee:

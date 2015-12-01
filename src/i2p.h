@@ -46,6 +46,7 @@ public:
     bool forward(const std::string& host, uint16_t port, bool silent);
     std::string namingLookup(const std::string& name) const;
     SAM::FullDestination destGenerate() const;
+    std::string GenerateB32AddressFromDestination(const std::string& destination);
 
     void stopForwarding(const std::string& host, uint16_t port);
     void stopForwardingAll();

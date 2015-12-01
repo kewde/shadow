@@ -118,6 +118,22 @@ SAM::FullDestination StreamSessionAdapter::destGenerate() const
     return result.isOk ? result.value : SAM::FullDestination();
 }
 
+std::string StreamSessionAdapter::GenerateB32AddressFromDestination(const std::string& destination)
+{
+    std::string canonicalDest = destination;
+    for (size_t pos = canonicalDest.find_first_of('-'); pos != std::string::npos; pos = canonicalDest.find_first_of('-', pos))
+        canonicalDest[pos] = '+';
+    for (size_t pos = canonicalDest.find_first_of('~'); pos != std::string::npos; pos = canonicalDest.find_first_of('~', pos))
+        canonicalDest[pos] = '/';
+    std::string rawHash = DecodeBase64(canonicalDest);
+    uint256 hash;
+    SHA256((const unsigned char*)rawHash.c_str(), rawHash.size(), (unsigned char*)&hash);
+    std::string result = EncodeBase32(hash.begin(), hash.end() - hash.begin()) + ".b32.i2p";
+    for (size_t pos = result.find_first_of('='); pos != std::string::npos; pos = result.find_first_of('=', pos-1))
+        result.erase(pos, 1);
+    return result;
+}
+
 void StreamSessionAdapter::stopForwarding(const std::string& host, uint16_t port)
 {
     sessionHolder_->getSession().stopForwarding(host, port);

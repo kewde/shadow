@@ -1248,9 +1248,21 @@
                         </div>
                         </td></tr>
                         <tr><td>
+                            <div class="option">
+                                <label for="optI2PSessionName"           class="option">Session Name:</label>
+                                <input  id="optI2PSessionName"           class="input_box" placeholder="ShadowCoreClient" />
+                            </div>
+                        </td></tr>
+                        <tr><td>
+                           <div class="option">
+                                <input  id="optb32" class="input_box" type="hidden" />
+                                <a class="button is-inverse has-icon-spacing" id="showB32"     href="#" onclick="if(this.className.indexOf('disabled') == -1){bridge.copy($('#optb32').val());}">Copy .b32.i2p address to clipboard<i class="fa fa-save"></i></a>
+                           </div>
+                        </td></tr>
+                        <tr><td>
                         <div class="option">
-                            <label for="optI2PInboundQuantity" class="option">inbound.quantity</label>
                             <select id="optI2PInboundQuantity" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1258,9 +1270,10 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2PInboundQuantity" class="option">inbound.quantity</label>
                             </td><td>
-                            <label for="optI2POutboundQuantity" class="option">outbound.quantity</label>
                             <select id="optI2POutboundQuantity" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1268,12 +1281,13 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2POutboundQuantity" class="option">outbound.quantity</label>
                         </div>
                         </td></tr>
                         <tr><td>
                         <div class="option">
-                            <label for="optI2PInboundLength" class="option">inbound.length</label>
                             <select id="optI2PInboundLength" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1281,9 +1295,10 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2PInboundLength" class="option">inbound.length</label>
                             </td><td>
-                            <label for="optI2POutboundLength" class="option">outbound.length</label>
                             <select id="optI2POutboundLength" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1291,12 +1306,13 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2POutboundLength" class="option">outbound.length</label>
                         </div>
                         </td></tr>
                         <tr><td>
                         <div class="option">
-                            <label for="optI2PInboundLengthVariance" class="option">inbound.lengthVariance</label>
                             <select id="optI2PInboundLengthVariance" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1304,9 +1320,10 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2PInboundLengthVariance" class="option">inbound.lengthVariance</label>
                             </td><td>
-                            <label for="optI2POutboundLengthVariance" class="option">outbound.lengthVariance</label>
                             <select id="optI2POutboundLengthVariance" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1314,12 +1331,13 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2POutboundLengthVariance" class="option">outbound.lengthVariance</label>
                         </div>
                         </td></tr>
                         <tr><td>
                         <div class="option">
-                            <label for="optI2PInboundBackupQuantity" class="option">inbound.backupQuantity</label>
                             <select id="optI2PInboundBackupQuantity" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1327,9 +1345,10 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2PInboundBackupQuantity" class="option">inbound.backupQuantity</label>
                             </td><td>
-                            <label for="optI2POutboundBackupQuantity" class="option">outbound.backupQuantity</label>
                             <select id="optI2POutboundBackupQuantity" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1337,6 +1356,7 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2POutboundBackupQuantity" class="option">outbound.backupQuantity</label>
                         </div>
                         </td></tr>
                         <tr><td>
@@ -1350,8 +1370,8 @@
                         </td></tr>
                         <tr><td>
                         <div class="option">
-                            <label for="optI2PInboundIPRestriction" class="option">inbound.IPRestriction</label>
                             <select id="optI2PInboundIPRestriction" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1359,9 +1379,10 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2PInboundIPRestriction" class="option">inbound.IPRestriction</label>
                             </td><td>
-                            <label for="optI2POutboundIPRestriction" class="option">outbound.IPRestriction</label>
                             <select id="optI2POutboundIPRestriction" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1369,12 +1390,13 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2POutboundIPRestriction" class="option">outbound.IPRestriction</label>
                         </div>
                         </td></tr>
                         <tr><td>
                           <div class="option">
-                            <label for="optI2POutboundPriority" class="option">outbound.priority</label>
-                            <select id="optI2POutboundPriority" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">
+                            <select id="optI2POutboundPriority" class="button is-inverse has-fixed-icon" style="height:43px; width:50px;">                               <option>0</option>
+                                <option>0</option>
                                 <option>1</option>
                                 <option>2</option>
                                 <option>3</option>
@@ -1382,6 +1404,7 @@
                                 <option>5</option>
                                 <option>6</option>
                             </select>
+                            <label for="optI2POutboundPriority" class="option">outbound.priority</label>
                         </div>
                         </td></tr>
                         </table>
