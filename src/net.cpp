@@ -710,7 +710,7 @@ void AddIncomingConnection(SOCKET hSocket, const CAddress& addr)
     {
         int nErr = WSAGetLastError();
         if (nErr != WSAEWOULDBLOCK)
-            LogPrintf("socket error accept failed: %d\n", nErr);
+            LogPrintf("I2P : socket error accept failed: %d\n", nErr);
     }
     else if (nInbound >= GetArg("-maxconnections", 125) - MAX_OUTBOUND_CONNECTIONS)
     {
@@ -722,12 +722,12 @@ void AddIncomingConnection(SOCKET hSocket, const CAddress& addr)
     }
     else if (CNode::IsBanned(addr))
     {
-        LogPrintf("connection from %s dropped (banned)\n", addr.ToString().c_str());
+        LogPrintf("I2P : Connection from %s dropped (banned)\n", addr.ToString().c_str());
         closesocket(hSocket);
     }
     else
     {
-        LogPrintf("accepted connection %s\n", addr.ToString().c_str());
+        LogPrintf("I2P : Accepted connection %s\n", addr.ToString().c_str());
         CNode* pnode = new CNode(hSocket, addr, "", true);
         pnode->AddRef();
         {
@@ -931,9 +931,9 @@ void ThreadSocketHandler()
 #ifdef USE_NATIVE_I2P
         if (nPrevI2PNodeCount != nI2PNodeCount)
         {
+	    LogPrintf("I2P Connection Count = %d (OLD:%d)\n", nI2PNodeCount, nPrevI2PNodeCount);
+	    //uiInterface.NotifyNumI2PConnectionsChanged(nI2PNodeCount);
             nPrevI2PNodeCount = nI2PNodeCount;
-            //uiInterface.NotifyNumI2PConnectionsChanged(nI2PNodeCount);
-            //LogPrintf("I2P Connection Changed to = " + nI2PNodeCount);
         }
 #endif
 
@@ -1104,13 +1104,13 @@ void ThreadSocketHandler()
                         }
                         else
                         {
-                            LogPrintf("Invalid incoming destination hash received (%s)\n", incomingAddr.c_str());
+                            LogPrintf("I2P Invalid incoming destination hash received (%s)\n", incomingAddr.c_str());
                             closesocket(hI2PListenSocket);
                         }
                     }
                     else
                     {
-                        LogPrintf("Invalid incoming destination hash size received (%d)\n", nBytes);
+                        LogPrintf("I2P Invalid incoming destination hash size received (%d)\n", nBytes);
                         closesocket(hI2PListenSocket);
                     }
                 }
