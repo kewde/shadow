@@ -70,6 +70,7 @@ public:
         I2POutboundAllowZeroHop,    // bool
         I2POutboundIPRestriction,   // int
         I2POutboundPriority,        // int
+        b32, //QString
 #endif
         OptionIDRowCount,
     };
