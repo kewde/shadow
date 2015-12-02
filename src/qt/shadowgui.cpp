@@ -436,6 +436,7 @@ void ShadowGUI::setNumI2PConnections(int count)
 {
     QWebElement connectionsI2PIcon = documentFrame->findFirstElement("#connectionsI2PIcon");
 
+    QString I2Ptext;
     QString icon;
     switch(count)
     {
@@ -448,7 +449,26 @@ void ShadowGUI::setNumI2PConnections(int count)
     default:         icon = "qrc:///icons/connect_6"; break;
     }
     connectionsI2PIcon.setAttribute("src", icon);
-    connectionsI2PIcon.setAttribute("data-title", tr("%n active connection(s) to Shadow I2P network", "", count));
+
+    if(clientModel->isI2POnly())
+    {
+	I2Ptext = "\nI2P Only Mode";
+    } else if(clientModel->isI2PEnabled()) {
+	I2Ptext = "\nI2P Dual Stack Mode";
+    } else {
+        I2Ptext = "\nI2P Disabled";
+    }
+
+    if (clientModel->isI2POnly() || clientModel->isI2PEnabled())
+    {
+        if (clientModel->isI2PAddressGenerated())
+        {
+            I2Ptext += "\nWallet is running with a randomly generated I2P Address";
+        } else {
+            I2Ptext += "\nWallet is running with a static I2P Address";
+        }
+    }
+    connectionsI2PIcon.setAttribute("data-title", tr("%n active connection(s) to Shadow I2P network %1", "", count).arg(I2Ptext));
 }
 #endif
 
