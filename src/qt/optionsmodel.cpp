@@ -203,7 +203,7 @@ void OptionsModel::Init()
 
     i2pOptions = QString::fromStdString(i2pOptionsTemp);
     
-    settings.setValue("b32", QString::fromStdString(I2PSession::Instance().GenerateB32AddressFromDestination(I2PSession::Instance().getMyDestination().pub)));
+    settings.setValue("I2Pb32", QString::fromStdString(I2PSession::Instance().GenerateB32AddressFromDestination(I2PSession::Instance().getMyDestination().pub)));
     
   #endif
 
@@ -286,9 +286,9 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
         case VisibleTransactions:
             return visibleTransactions;
 #ifdef USE_NATIVE_I2P
-        case b32:
+        case I2Pb32:
         {
-            return settings.value("b32", "NONE");
+            return settings.value("I2Pb32", "NONE");
         }
         case I2PUseI2POnly:
         {
@@ -383,7 +383,7 @@ QString OptionsModel::optionIDName(int row)
     case VisibleTransactions: return "VisibleTransactions";
 #ifdef USE_NATIVE_I2P
     case I2PUseI2POnly: return "I2PUseI2POnly";
-    case b32: return "b32";
+    case I2Pb32: return "I2Pb32";
     case I2PSAMHost: return "I2PSAMHost";
     case I2PSAMPort: return "I2PSAMPort";
     

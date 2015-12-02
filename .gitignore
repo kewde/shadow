@@ -27,5 +27,6 @@ qrc_*.cpp
 build
 #I2P specific
 shadowd-build-number
+shadow-qt-build-version
 src/i2pbuild.h
 !src/leveldb/Makefile

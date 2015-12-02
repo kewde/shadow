@@ -214,6 +214,11 @@ bool ClientModel::isI2POnly() const
     return IsI2POnly();
 }
 
+bool ClientModel::isI2PEnabled() const
+{
+    return IsI2PEnabled();
+}
+
 QString ClientModel::getB32Address(const QString& destination) const
 {
     return QString::fromStdString(I2PSession::GenerateB32AddressFromDestination(destination.toStdString()));

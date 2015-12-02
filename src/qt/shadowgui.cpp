@@ -15,16 +15,11 @@
 #include "bitcoinunits.h"
 #include "guiconstants.h"
 #include "askpassphrasedialog.h"
-#include "i2poptionswidget.h"
 #include "notificator.h"
 #include "guiutil.h"
 #include "wallet.h"
 #include "util.h"
 #include "init.h"
-
-#ifdef USE_NATIVE_I2P
-#include "showi2paddresses.h"
-#endif
 
 #ifdef Q_OS_MAC
 #include "macdockiconhandler.h"
@@ -297,6 +292,12 @@ void ShadowGUI::setClientModel(ClientModel *clientModel)
 
         connect(clientModel, SIGNAL(numConnectionsChanged(int)), this, SLOT(setNumConnections(int)));
         connect(clientModel, SIGNAL(numBlocksChanged(int,int)), this, SLOT(setNumBlocks(int,int)));
+#ifdef USE_NATIVE_I2P
+	if(clientModel->isI2POnly() || clientModel->isI2PEnabled())
+	{
+	    connect(clientModel, SIGNAL(numI2PConnectionsChanged(int)), this, SLOT(setNumI2PConnections(int)));
+	}
+#endif
 
         // Report errors from network/worker thread
         connect(clientModel, SIGNAL(error(QString,QString,bool)), this, SLOT(error(QString,QString,bool)));
@@ -326,6 +327,12 @@ void ShadowGUI::setWalletModel(WalletModel *walletModel)
 
         // Keep up to date with client
         setNumConnections(clientModel->getNumConnections());
+#ifdef USE_NATIVE_I2P
+        if(clientModel->isI2POnly() || clientModel->isI2PEnabled())
+        {
+	    setNumI2PConnections(clientModel->getNumI2PConnections());
+	}
+#endif
         setNumBlocks     (clientModel->getNumBlocks(),
                           clientModel->getNumBlocksOfPeers());
         setEncryptionStatus(walletModel->getEncryptionStatus());
@@ -423,6 +430,27 @@ void ShadowGUI::setNumConnections(int count)
     connectionsIcon.setAttribute("src", icon);
     connectionsIcon.setAttribute("data-title", tr("%n active connection(s) to ShadowCoin network", "", count));
 }
+
+#ifdef USE_NATIVE_I2P
+void ShadowGUI::setNumI2PConnections(int count)
+{
+    QWebElement connectionsI2PIcon = documentFrame->findFirstElement("#connectionsI2PIcon");
+
+    QString icon;
+    switch(count)
+    {
+    case 0:          icon = "qrc:///icons/connect_0"; break;
+    case 1: case 2:  icon = "qrc:///icons/connect_1"; break;
+    case 3: case 4:  icon = "qrc:///icons/connect_2"; break;
+    case 5: case 6:  icon = "qrc:///icons/connect_3"; break;
+    case 7: case 8:  icon = "qrc:///icons/connect_4"; break;
+    case 9: case 10: icon = "qrc:///icons/connect_5"; break;
+    default:         icon = "qrc:///icons/connect_6"; break;
+    }
+    connectionsI2PIcon.setAttribute("src", icon);
+    connectionsI2PIcon.setAttribute("data-title", tr("%n active connection(s) to Shadow I2P network", "", count));
+}
+#endif
 
 void ShadowGUI::setNumBlocks(int count, int nTotalBlocks)
 {

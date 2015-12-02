@@ -221,3 +221,26 @@ std::string I2PSession::GenerateB32AddressFromDestination(const std::string& des
         result.erase(pos, 1);
     return result;
 }
+
+bool IsTorOnly()
+{
+    bool torOnly = false;
+    const std::vector<std::string>& onlyNets = mapMultiArgs["-onlynet"];
+    torOnly = (onlyNets.size() == 1) && ( (onlyNets[0] == "tor") || (onlyNets[0] == "onion") );
+    return torOnly;
+}
+
+bool IsI2POnly()
+{
+    bool i2pOnly = false;
+    if (mapArgs.count("-onlynet")) {
+        const std::vector<std::string>& onlyNets = mapMultiArgs["-onlynet"];
+        i2pOnly = (onlyNets.size() == 1 && onlyNets[0] == NATIVE_I2P_NET_STRING);
+    }
+    return i2pOnly;
+}
+
+bool IsI2PEnabled()
+{
+    return GetBoolArg("-i2p", false);
+}
