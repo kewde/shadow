@@ -39,6 +39,7 @@ CClientUIInterface uiInterface;
 
 
 
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // Shutdown
@@ -755,7 +756,9 @@ bool AppInit2(boost::thread_group& threadGroup)
     nBloomFilterElements = GetArg("-bloomfilterelements", 1536);
 
 #ifdef USE_NATIVE_I2P
-    bool fI2PEnabled = GetBoolArg("-i2p", false);
+    bool fI2PEnabled = false;
+    if (IsI2POnly() || IsI2PEnabled())
+        fI2PEnabled = true;
 #endif
 
     if (mapArgs.count("-onlynet"))
@@ -764,12 +767,6 @@ bool AppInit2(boost::thread_group& threadGroup)
         BOOST_FOREACH(std::string snet, mapMultiArgs["-onlynet"])
         {
             enum Network net = ParseNetwork(snet);
-#ifdef USE_NATIVE_I2P
-            if (net == NET_NATIVE_I2P)
-            {
-                fI2PEnabled = true;
-            }
-#endif
             if (net == NET_UNROUTABLE)
 #ifdef USE_NATIVE_I2P
                 return InitError(strprintf(_("Unknown network specified in -onlynet but I2P native specified: '%s'"), snet.c_str()));
