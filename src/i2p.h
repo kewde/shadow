@@ -7,6 +7,10 @@
 
 #include "i2psam.h"
 
+bool IsI2POnly();
+bool IsTorOnly();
+bool IsI2PEnabled();
+
 #define I2P_SESSION_NAME_PARAM          "-i2psessionname"
 #define I2P_SESSION_NAME_DEFAULT        SAM_DEFAULT_SESSION_NAME
 

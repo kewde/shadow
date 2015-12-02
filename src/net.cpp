@@ -932,7 +932,7 @@ void ThreadSocketHandler()
         if (nPrevI2PNodeCount != nI2PNodeCount)
         {
 	    LogPrintf("I2P Connection Count = %d (OLD:%d)\n", nI2PNodeCount, nPrevI2PNodeCount);
-	    //uiInterface.NotifyNumI2PConnectionsChanged(nI2PNodeCount);
+	    uiInterface.NotifyNumI2PConnectionsChanged(nI2PNodeCount);
             nPrevI2PNodeCount = nI2PNodeCount;
         }
 #endif
@@ -1768,30 +1768,7 @@ bool BindListenNativeI2P(SOCKET& hSocket)
         AddLocal(addrBind, LOCAL_BIND);
     return true;
 }
-
-bool IsI2POnly()
-{
-//    bool i2pOnly = false;
-//    if (mapArgs.count("-onlynet"))
-//    {
-//        const std::vector<std::string>& onlyNets = mapMultiArgs["-onlynet"];
-//        i2pOnly = (onlyNets.size() == 1 && onlyNets[0] == NATIVE_I2P_NET_STRING);
-//    }
-//    return i2pOnly;
-
-    bool i2pOnly = NET_MAX > 0; // if NET_MAX == 0 we set i2pOnly to false and exit
-    for (int n = 0; n < NET_MAX; n++)
-    {
-        Network net = (Network)n;
-        if (net == NET_UNROUTABLE)
-            continue;
-        i2pOnly &= ((net == NET_NATIVE_I2P) != IsLimited(net)); // isI2P xor IsLimited
-    }
-    return i2pOnly;
-}
 #endif
-
-
 
 bool BindListenPort(const CService &addrBind, string& strError)
 {

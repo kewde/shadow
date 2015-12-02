@@ -116,6 +116,12 @@ private slots:
 
     /** Set number of connections shown in the UI */
     void setNumConnections(int count);
+
+#ifdef USE_NATIVE_I2P
+    /** Set number of I2P connections shown in the UI */
+    void setNumI2PConnections(int count);
+#endif
+
     /** Set number of blocks shown in the UI */
     void setNumBlocks(int count, int nTotalBlocks);
     /** Set the encryption status as shown in the UI.

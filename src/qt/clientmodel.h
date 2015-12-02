@@ -75,6 +75,7 @@ public:
     QString getPrivateI2PKey() const;
     bool isI2PAddressGenerated() const;
     bool isI2POnly() const;
+    bool isI2PEnabled() const;
     QString getB32Address(const QString& destination) const;
     void generateI2PDestination(QString& pub, QString& priv) const;
 #endif
