@@ -203,10 +203,8 @@ void OptionsModel::Init()
 
     i2pOptions = QString::fromStdString(i2pOptionsTemp);
     
-    const SAM::FullDestination generatedDest = I2PSession::Instance().destGenerate();
-    QString pub = QString::fromStdString(generatedDest.pub);
-    QString priv = QString::fromStdString(generatedDest.priv);
-    settings.setValue("b32", QString::fromStdString(I2PSession::Instance().GenerateB32AddressFromDestination(generatedDest.pub)));
+    settings.setValue("b32", QString::fromStdString(I2PSession::Instance().GenerateB32AddressFromDestination(I2PSession::Instance().getMyDestination().pub)));
+    
   #endif
 
 }
