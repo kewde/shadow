@@ -325,7 +325,7 @@ std::string HelpMessage()
     strUsage += "  -smsgscanchain                           " + _("Scan the block chain for public key addresses on startup.") + "\n";
 
     strUsage += "\n" + _("I2P Options::") + "\n";
-    strUsage += "  -i2p=1                                " + _("Enable I2P.") + "\n";
+    strUsage += "  -i2p                                  " + _("Enable I2P.") + "\n";
     strUsage += "  -onlynet=native_i2p                   " + _("Enable I2P only mode.") + "\n";
     strUsage += "  -i2pgeneratedestination               " + _("Generate an I2P destination, print it and exit.")+ "\n";
     strUsage += "  -i2psessionname=<session name>        " + _("Name of an I2P session. If it is not specified, value will be \"ShadowCoreClient\"") + "\n";

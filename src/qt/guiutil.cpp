@@ -106,6 +106,9 @@ QString formatServicesStr(quint64 mask)
             case SMSG_RELAY:
                 strList.append("SMSG_RELAY");
                 break;
+            case NODE_I2P:
+                strList.append("NODE_I2P");
+                break;
             default:
                 strList.append(QString("%1[%2]").arg("UNKNOWN").arg(check));
         };
