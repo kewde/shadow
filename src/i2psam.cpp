@@ -41,9 +41,13 @@ namespace SAM
 static void print_error(const std::string& err)
 {
 #ifdef WIN32
-    std::cout << err << "(" << WSAGetLastError() << ")" << std::endl;
+    if (fDebugI2P) 
+	LogPrintf("I2P : %s (%s)\n", err, WSAGetLastError());
+    	//std::cout << err << "(" << WSAGetLastError() << ")" << std::endl;
 #else
-    std::cout << err << "(" << errno << ")" << std::endl;
+    if (fDebugI2P)
+	LogPrintf("I2P : %s (%s)\n", err, errno);
+	//std::cout << err << "(" << errno << ")" << std::endl;
 #endif
 }
 
