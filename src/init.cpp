@@ -772,7 +772,7 @@ bool AppInit2(boost::thread_group& threadGroup)
             }
 #endif
             if (net == NET_UNROUTABLE)
-                return InitError(strprintf(_("Unknown network specified in -onlynet but I2P failed: '%s'"), snet.c_str()));
+                return InitError(strprintf(_("Unknown network specified in -onlynet: '%s'"), snet.c_str()));
             nets.insert(net);
         };
         for (int n = 0; n < NET_MAX; n++)
