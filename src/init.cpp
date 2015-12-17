@@ -755,24 +755,24 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     nBloomFilterElements = GetArg("-bloomfilterelements", 1536);
 
-#ifdef USE_NATIVE_I2P
-    bool fI2PEnabled = false;
-    if (IsI2POnly() || IsI2PEnabled())
-        fI2PEnabled = true;
-#endif
-
     if (mapArgs.count("-onlynet"))
     {
         std::set<enum Network> nets;
         BOOST_FOREACH(std::string snet, mapMultiArgs["-onlynet"])
         {
             enum Network net = ParseNetwork(snet);
-            if (net == NET_UNROUTABLE)
 #ifdef USE_NATIVE_I2P
-                return InitError(strprintf(_("Unknown network specified in -onlynet but I2P native specified: '%s'"), snet.c_str()));
-         #else
-                return InitError(strprintf(_("Unknown network specified in -onlynet but I2P failed: '%s'"), snet.c_str()));
+            if (net == NET_NATIVE_I2P)
+            {
+#ifdef USE_UPNP
+                SoftSetBoolArg("-upnp", false);
 #endif
+                SoftSetBoolArg("-listen",true);
+                SoftSetBoolArg("-discover",false);
+            }
+#endif
+            if (net == NET_UNROUTABLE)
+                return InitError(strprintf(_("Unknown network specified in -onlynet but I2P failed: '%s'"), snet.c_str()));
             nets.insert(net);
         };
         for (int n = 0; n < NET_MAX; n++)
@@ -819,14 +819,21 @@ bool AppInit2(boost::thread_group& threadGroup)
     fUseUPnP = GetBoolArg("-upnp", USE_UPNP);
 #endif
 
-    bool fBound = false;
-
 #ifdef USE_NATIVE_I2P
-    //Regardless of users choice on binding, listening, discovery or dns - attempt to start I2P if enabled.
-    if (fI2PEnabled) LogPrintf("I2P Enabled - Starting...\n");
-    if (!IsLimited(NET_NATIVE_I2P) && fI2PEnabled)
-        fBound |= BindNativeI2P();
+    // -i2p can override both tor and proxy
+    bool fI2PEnabled = false;
+    if (!(mapArgs.count("-i2p") && mapArgs["-i2p"] == "0") || IsI2POnly())
+    {
+#ifdef USE_UPNP
+        SoftSetBoolArg("-upnp", false);
 #endif
+        SoftSetBoolArg("-listen",true);
+        SetReachable(NET_NATIVE_I2P);
+        fI2PEnabled = true;
+    }
+#endif
+
+    bool fBound = false;
 
     if (!fNoListen)
     {
@@ -848,6 +855,11 @@ bool AppInit2(boost::thread_group& threadGroup)
                 fBound |= Bind(CService(in6addr_any, GetListenPort()), false);
             if (!IsLimited(NET_IPV4))
                 fBound |= Bind(CService(inaddr_any, GetListenPort()), !fBound);
+            if (!IsLimited(NET_NATIVE_I2P) && fI2PEnabled)
+            {
+                LogPrintf("I2P Enabled - Starting...\n");
+                fBound |= BindNativeI2P();
+            }
         };
         if (!fBound)
             return InitError(_("Failed to listen on any port. Use -listen=0 if you want this."));

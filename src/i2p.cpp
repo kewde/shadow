@@ -242,5 +242,7 @@ bool IsI2POnly()
 
 bool IsI2PEnabled()
 {
-    return GetBoolArg("-i2p", false);
+    if (!(mapArgs.count("-i2p") && mapArgs["-i2p"] == "0"))
+        return true;
+    return false;
 }
