@@ -1905,7 +1905,7 @@ QVariantMap ShadowBridge::extKeyImport(QString inKey, QString inLabel, bool fBip
         if (0 != (rv = pwalletMain->ExtKeyImportLoose(&wdb, sek, fBip44, false)))
         {
             wdb.TxnAbort();
-            result.insert("error_msg", QString("ExtKeyImportLoose failed, %s").arg(ExtKeyGetString(rv)));
+            result.insert("error_msg", QString("ExtKeyImportLoose failed, %1").arg(ExtKeyGetString(rv)));
             return result;
         } else
             if (!wdb.TxnCommit())

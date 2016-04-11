@@ -218,9 +218,7 @@ extern json_spirit::Value anonoutputs(const json_spirit::Array& params, bool fHe
 extern json_spirit::Value anoninfo(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value reloadanondata(const json_spirit::Array& params, bool fHelp);
 
-
 extern json_spirit::Value txnreport(const json_spirit::Array& params, bool fHelp);
-
 
 extern json_spirit::Value smsgenable(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value smsgdisable(const json_spirit::Array& params, bool fHelp);
@@ -235,7 +233,6 @@ extern json_spirit::Value smsgsendanon(const json_spirit::Array& params, bool fH
 extern json_spirit::Value smsginbox(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value smsgoutbox(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value smsgbuckets(const json_spirit::Array& params, bool fHelp);
-
 
 extern json_spirit::Value thinscanmerkleblocks(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value thinforcestate(const json_spirit::Array& params, bool fHelp);

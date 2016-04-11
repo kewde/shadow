@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = shadow
-VERSION = 1.3.3.5
+VERSION = 1.4.0.3
 INCLUDEPATH += src src/json src/qt
 DEFINES += BOOST_THREAD_USE_LIB BOOST_SPIRIT_THREADSAFE
 CONFIG += no_include_pwd

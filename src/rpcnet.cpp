@@ -64,7 +64,7 @@ Value getpeerinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("inbound", stats.fInbound));
         obj.push_back(Pair("chainheight", stats.nChainHeight));
         obj.push_back(Pair("banscore", stats.nMisbehavior));
-        
+
         ret.push_back(obj);
     }
     return ret;
@@ -80,22 +80,22 @@ Value addnode(const Array& params, bool fHelp)
         throw std::runtime_error(
             "addnode <node> <add|remove|onetry>\n"
             "Attempts add or remove <node> from the addnode list or try a connection to <node> once.");
-    
+
     std::string strNode = params[0].get_str();
-    
+
     if (strCommand == "onetry")
     {
         CAddress addr;
         ConnectNode(addr, strNode.c_str());
         return Value::null;
     };
-    
+
     LOCK(cs_vAddedNodes);
     std::vector<std::string>::iterator it = vAddedNodes.begin();
     for(; it != vAddedNodes.end(); it++)
         if (strNode == *it)
             break;
-    
+
     if (strCommand == "add")
     {
         if (it != vAddedNodes.end())
@@ -108,7 +108,7 @@ Value addnode(const Array& params, bool fHelp)
             throw JSONRPCError(RPC_CLIENT_NODE_NOT_ADDED, "Error: Node has not been added.");
         vAddedNodes.erase(it);
     };
-    
+
     return Value::null;
 }
 
@@ -121,9 +121,9 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
             "(note that onetry addnodes are not listed here)\n"
             "If dns is false, only a list of added nodes will be provided,\n"
             "otherwise connected information will also be available.");
-    
+
     bool fDns = params[0].get_bool();
-    
+
     std::list<std::string> laddedNodes(0);
     if (params.size() == 1)
     {
@@ -143,7 +143,7 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
         if (laddedNodes.size() == 0)
             throw JSONRPCError(RPC_CLIENT_NODE_NOT_ADDED, "Error: Node has not been added.");
     };
-    
+
     if (!fDns)
     {
         Object ret;
@@ -151,9 +151,9 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
             ret.push_back(Pair("addednode", strAddNode));
         return ret;
     };
-    
+
     Array ret;
-    
+
     std::list<std::pair<std::string, std::vector<CService> > > laddedAddreses(0);
     BOOST_FOREACH(std::string& strAddNode, laddedNodes)
     {
@@ -169,7 +169,7 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
             obj.push_back(Pair("addresses", addresses));
         };
     };
-    
+
     LOCK(cs_vNodes);
     for (std::list<std::pair<std::string, std::vector<CService> > >::iterator it = laddedAddreses.begin(); it != laddedAddreses.end(); it++)
     {
@@ -199,11 +199,11 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
         obj.push_back(Pair("addresses", addresses));
         ret.push_back(obj);
     };
-    
+
     return ret;
 }
- 
-// ppcoin: send alert.  
+
+// ppcoin: send alert.
 // There is a known deadlock situation with ThreadMessageHandler
 // ThreadMessageHandler: holds cs_vSend and acquiring cs_main in SendMessages()
 // ThreadRPCServer: holds cs_main and acquiring cs_vSend in alert.RelayTo()/PushMessage()/BeginMessage()
@@ -243,8 +243,8 @@ Value sendalert(const Array& params, bool fHelp)
     key.SetPrivKey(CPrivKey(vchPrivKey.begin(), vchPrivKey.end()), false); // if key is not correct openssl may crash
     if (!key.Sign(Hash(alert.vchMsg.begin(), alert.vchMsg.end()), alert.vchSig))
         throw std::runtime_error(
-            "Unable to sign alert, check private key?\n");  
-    if (!alert.ProcessAlert()) 
+            "Unable to sign alert, check private key?\n");
+    if (!alert.ProcessAlert())
         throw std::runtime_error(
             "Failed to process alert.\n");
     // Relay alert
@@ -336,7 +336,6 @@ Value getnetworkinfo(const Array& params, bool fHelp)
     //obj.push_back(Pair("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK())));
     Array localAddresses;
     {
-        LOCK(cs_mapLocalHost);
         BOOST_FOREACH(const PAIRTYPE(CNetAddr, LocalServiceInfo) &item, mapLocalHost)
         {
             Object rec;

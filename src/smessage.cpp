@@ -49,7 +49,7 @@ Notes:
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-
+#include <boost/algorithm/string/replace.hpp>
 
 #include "base58.h"
 #include "db.h"
@@ -1987,7 +1987,6 @@ static bool ScanBlock(CBlock& block, CTxDB& txdb, SecMsgDB& addrpkdb,
                 CScript::const_iterator pc = script->begin();
                 CScript::const_iterator pend = script->end();
 
-                uint256 prevoutHash;
                 CKey key;
 
                 while (pc < pend)
@@ -2590,6 +2589,17 @@ int SecureMsgScanMessage(uint8_t *pHeader, uint8_t *pPayload, uint32_t nPayload,
                 };
             };
         } // cs_smsgDB
+
+        // notify an external script when a message comes in
+        std::string strCmd = GetArg("-smsgnotify", "");
+
+        //TODO: Format message
+        if (!strCmd.empty())
+        {
+            boost::replace_all(strCmd, "%s", addressTo);
+            boost::thread t(runCommand, strCmd); // thread runs free
+        };
+
     };
 
     return 0;
@@ -3299,7 +3309,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
     bool fSendAnonymous = (addressFrom.compare("anon") == 0);
 
 
-    if (message.size() >fSendAnonymous ? SMSG_MAX_AMSG_BYTES : SMSG_MAX_MSG_BYTES)
+    if (message.size() > (fSendAnonymous ? SMSG_MAX_AMSG_BYTES : SMSG_MAX_MSG_BYTES))
     {
         return errorN(2, "%s: Message is too long, %u.", __func__, message.size());
     };

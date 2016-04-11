@@ -125,7 +125,7 @@ public:
 
     void updateEntry(const QString &address, const QString &label, bool isMine, int status)
     {
-        if (address.startsWith("ao "))
+        if (label.startsWith("ao "))
             return;
 
         // Find address / label in model

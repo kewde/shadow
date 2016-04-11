@@ -131,6 +131,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "getblocktemplate", 0 },
     { "listsinceblock", 1 },
 
+    { "clearwallettransactions", 0},
     { "scanforalltxns", 0 },
     { "scanforstealthtxns", 0 },
 

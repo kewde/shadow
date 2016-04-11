@@ -182,7 +182,7 @@ void RunDeriveTest(std::vector<DeriveTestData> &vData)
             
             BOOST_CHECK(0 == (rv += abs(strcmp(CBitcoinExtPubKey(epkeyM).ToString().c_str(), dt.pKey58.c_str()))));
             
-            BOOST_MESSAGE(CBitcoinExtPubKey(epkeyM).ToString().c_str());
+            BOOST_CHECK(CBitcoinExtPubKey(epkeyM).ToString().c_str());
             
             if (rv != 0)
             {
@@ -204,7 +204,7 @@ void RunDeriveTest(std::vector<DeriveTestData> &vData)
         BOOST_CHECK(dt.nDerives == (uint32_t)rv);
         evkeyOut = evkey[dt.nDerives % 2];
         
-        BOOST_MESSAGE(CBitcoinExtKey(evkeyOut).ToString().c_str());
+        BOOST_CHECK(CBitcoinExtKey(evkeyOut).ToString().c_str());
         BOOST_MESSAGE("evkeyOut.nDepth " << (int)evkeyOut.nDepth);
         BOOST_CHECK(evkeyOut.nDepth == dt.nDerives % 256);
         

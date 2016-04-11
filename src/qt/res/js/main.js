@@ -556,7 +556,7 @@ var overviewPage = {
 
         // Announcement feed
         $.ajax({
-            url:"http://ajax.googleapis.com/ajax/services/feed/load?v=2.0\&q=http://shadowhangout.com/category/18.rss",
+            url:"http://ajax.googleapis.com/ajax/services/feed/load?v=2.0\&q=https://blog.shadowproject.io/rss/",
             dataType: 'jsonp'
         }).success(function(rss) {
             rss.responseData.feed.entries = rss.responseData.feed.entries.sort(function(a,b){
@@ -564,8 +564,12 @@ var overviewPage = {
             });
             for(i=0;i<rss.responseData.feed.entries.length;i++) {
                 $('#announcements').append("<h4><a href='" + rss.responseData.feed.entries[i].link  + "'>" + rss.responseData.feed.entries[i].title + "</a></h4>"
+                                         + "<div>"
+                                         + rss.responseData.feed.entries[i].contentSnippet
+                                         + "</div>"
+                                         + "<br>"
                                          + "<span>"
-                                             +      new Date(rss.responseData.feed.entries[i].publishedDate).toDateString()
+                                         + new Date(rss.responseData.feed.entries[i].publishedDate).toDateString()
                                          + "</span>");
             }
         });

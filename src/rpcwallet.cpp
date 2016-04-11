@@ -159,8 +159,10 @@ Value getinfo(const Array& params, bool fHelp)
     obj.push_back(Pair("timeoffset",    (int64_t)GetTimeOffset()));
 
     if (nNodeMode == NT_FULL)
-        obj.push_back(Pair("moneysupply",   ValueFromAmount(pindexBest->nMoneySupply)));
-
+    {
+        obj.push_back(Pair("moneysupply",  ValueFromAmount(pindexBest->nMoneySupply)));
+        obj.push_back(Pair("shadowsupply", ValueFromAmount(pindexBest->nAnonSupply)));
+    }
 
     obj.push_back(Pair("connections",   (int)vNodes.size()));
     obj.push_back(Pair("datareceived",  bytesReadable(CNode::GetTotalBytesRecv())));
@@ -182,9 +184,8 @@ Value getinfo(const Array& params, bool fHelp)
     };
 
     obj.push_back(Pair("difficulty",    diff));
-
     obj.push_back(Pair("testnet",       fTestNet));
-
+    obj.push_back(Pair("keypoolsize",   (int)pwalletMain->GetKeyPoolSize()));
     obj.push_back(Pair("paytxfee",      ValueFromAmount(nTransactionFee)));
     obj.push_back(Pair("mininput",      ValueFromAmount(nMinimumInputValue)));
     if (pwalletMain->IsCrypted())
@@ -307,8 +308,15 @@ CBitcoinAddress GetAccountAddress(std::string strAccount, bool bForceNew=false)
     // Generate a new key
     if (!account.vchPubKey.IsValid() || bForceNew || bKeyUsed)
     {
-        if (!pwalletMain->GetKeyFromPool(account.vchPubKey, false))
-            throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
+        // Generate a new key that is added to wallet
+        CStoredExtKey *sek = new CStoredExtKey();
+ 
+        if (0 != pwalletMain->NewExtKeyFromAccount(strAccount, sek))
+        {
+            delete sek;
+            throw std::runtime_error("NewExtKeyFromAccount failed.");
+        };
+        account.vchPubKey = sek->kp.pubkey;
 
         pwalletMain->SetAddressBookName(account.vchPubKey.GetID(), strAccount);
         walletdb.WriteAccount(strAccount, account);
@@ -2231,17 +2239,20 @@ Value sendtostealthaddress(const Array& params, bool fHelp)
 
 Value clearwallettransactions(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() > 0)
+    if (fHelp || params.size() > 1)
         throw std::runtime_error(
-            "clearwallettransactions \n"
+            "clearwallettransactions [unaccepted]\n"
+                "[unaccepted] optional to deleted unaccepted stakes only\n"
             "delete all transactions from wallet - reload with reloadanondata\n"
             "Warning: Backup your wallet first!");
-
-
 
     Object result;
 
     uint32_t nTransactions = 0;
+
+    bool fUnaccepted = false;
+    if (params.size() > 0)
+        fUnaccepted = params[0].get_bool();
 
     char cbuf[256];
 
@@ -2326,11 +2337,28 @@ Value clearwallettransactions(const Array& params, bool fHelp)
                 uint256 hash;
                 ssValue >> hash;
 
+                if (fUnaccepted)
+                {
+                    const CWalletTx& wtx = pwalletMain->mapWallet[hash];
+                    if (!wtx.IsInMainChain())
+                    {
+                        if ((ret = pcursor->del(0)) != 0)
+                        {
+                            LogPrintf("Delete transaction failed %d, %s\n", ret, db_strerror(ret));
+                            continue;
+                        }
+                        pwalletMain->mapWallet.erase(hash);
+                        pwalletMain->NotifyTransactionChanged(pwalletMain, hash, CT_DELETED);
+                        nTransactions++;
+                    }
+                    continue;
+                }
+
                 if ((ret = pcursor->del(0)) != 0)
                 {
                     LogPrintf("Delete transaction failed %d, %s\n", ret, db_strerror(ret));
                     continue;
-                };
+                }
 
                 pwalletMain->mapWallet.erase(hash);
                 pwalletMain->NotifyTransactionChanged(pwalletMain, hash, CT_DELETED);
@@ -2479,8 +2507,7 @@ Value sendsdctoanon(const Array& params, bool fHelp)
     if (fHelp || params.size() < 2 || params.size() > 5)
         throw std::runtime_error(
             "sendsdctoanon <stealth_address> <amount> [narration] [comment] [comment-to]\n"
-            "<amount> is a real and is rounded to the nearest 0.000001"
-            "<ring_size> is a number of outputs of the same amount to include in the signature"
+            "<amount> is a real number and is rounded to the nearest 0.000001"
             + HelpRequiringPassphrase());
 
     if (pwalletMain->IsLocked())
@@ -2522,8 +2549,9 @@ Value sendanontoanon(const Array& params, bool fHelp)
     if (fHelp || params.size() < 3 || params.size() > 6)
         throw std::runtime_error(
             "sendanontoanon <stealth_address> <amount> <ring_size> [narration] [comment] [comment-to]\n"
-            "<amount> is a real and is rounded to the nearest 0.000001"
-            "<ring_size> is a number of outputs of the same amount to include in the signature"
+            "<amount> is a real number and is rounded to the nearest 0.000001\n"
+            "<ring_size> is a number of outputs of the same amount to include in the signature\n"
+            "  warning: using a ring_size less than 3 is not recommended"
             + HelpRequiringPassphrase());
 
     if (pwalletMain->IsLocked())
@@ -2534,8 +2562,12 @@ Value sendanontoanon(const Array& params, bool fHelp)
 
     uint32_t nRingSize = (uint32_t)params[2].get_int();
 
+    Object result;
     std::ostringstream ssThrow;
-    if (nRingSize < MIN_RING_SIZE || nRingSize > MAX_RING_SIZE)
+    if (nRingSize < MIN_RING_SIZE)
+        result.push_back(Pair("warning", "Ring size was below the recommended size, your existing will be marked as compromised."));
+
+    if (nRingSize > MAX_RING_SIZE)
         ssThrow << "Ring size must be >= " << MIN_RING_SIZE << " and <= " << MAX_RING_SIZE << ".", throw std::runtime_error(ssThrow.str());
 
 
@@ -2564,6 +2596,12 @@ Value sendanontoanon(const Array& params, bool fHelp)
         LogPrintf("SendAnonToAnon failed %s\n", sError.c_str());
         throw JSONRPCError(RPC_WALLET_ERROR, sError);
     };
+
+    if (result.size() > 0)
+    {
+        result.push_back(Pair("txid", wtx.GetHash().ToString()));
+        return result;
+    }
     return wtx.GetHash().GetHex();
 }
 
@@ -2572,7 +2610,8 @@ Value sendanontosdc(const Array& params, bool fHelp)
     if (fHelp || params.size() < 3 || params.size() > 6)
         throw std::runtime_error(
             "sendanontosdc <stealth_address> <amount> <ring_size> [narration] [comment] [comment-to]\n"
-            "<amount> is a real and is rounded to the nearest 0.000001"
+            "<amount> is a real number and is rounded to the nearest 0.000001\n"
+            "<ring_size> is a number of outputs of the same amount to include in the signature"
             + HelpRequiringPassphrase());
 
     if (pwalletMain->IsLocked())
@@ -2621,7 +2660,8 @@ Value estimateanonfee(const Array& params, bool fHelp)
     if (fHelp || params.size() < 2 || params.size() > 3)
         throw std::runtime_error(
             "estimateanonfee <amount> <ring_size> [narration]\n"
-            "<amount>is a real and is rounded to the nearest 0.000001");
+            "<amount>is a real number and is rounded to the nearest 0.000001\n"
+            "<ring_size> is a number of outputs of the same amount to include in the signature");
 
     int64_t nAmount = AmountFromValue(params[0]);
 
@@ -2707,7 +2747,7 @@ Value anonoutputs(const Array& params, bool fHelp)
         {
             if (nLast > 0 && it->nValue != nLast)
             {
-                snprintf(cbuf, sizeof(cbuf), "%03d", nCount);
+                snprintf(cbuf, sizeof(cbuf), "%3d", nCount);
                 result.push_back(Pair(cbuf, ValueFromAmount(nLast)));
                 nCount = 0;
             };
@@ -2718,7 +2758,7 @@ Value anonoutputs(const Array& params, bool fHelp)
 
         if (nCount > 0)
         {
-            snprintf(cbuf, sizeof(cbuf), "%03d", nCount);
+            snprintf(cbuf, sizeof(cbuf), "%3d", nCount);
             result.push_back(Pair(cbuf, ValueFromAmount(nLast)));
         };
         result.push_back(Pair("total", ValueFromAmount(nTotal)));
@@ -2731,10 +2771,9 @@ Value anonoutputs(const Array& params, bool fHelp)
         if (pwalletMain->CountAnonOutputs(mOutputCounts, fMatureOnly) != 0)
             throw std::runtime_error("CountAnonOutputs() failed.");
 
-        result.push_back(Pair("No. of coins owned, No. of system coins", "amount"));
+        result.push_back(Pair("No. of coins owned, No. of system coins available", "amount"));
 
         // -- lAvailableCoins is ordered by value
-        char cbuf[256];
         int64_t nTotal = 0;
         int64_t nLast = 0;
         int64_t nCount = 0;
@@ -2744,7 +2783,7 @@ Value anonoutputs(const Array& params, bool fHelp)
             if (nLast > 0 && it->nValue != nLast)
             {
                 nSystemCount = mOutputCounts[nLast];
-                std::string str = strprintf(cbuf, sizeof(cbuf), "%04d, %04d", nCount, nSystemCount);
+                std::string str = strprintf("%4d, %4d", nCount, nSystemCount);
                 result.push_back(Pair(str, ValueFromAmount(nLast)));
                 nCount = 0;
             };
@@ -2756,7 +2795,7 @@ Value anonoutputs(const Array& params, bool fHelp)
         if (nCount > 0)
         {
             nSystemCount = mOutputCounts[nLast];
-            std::string str = strprintf(cbuf, sizeof(cbuf), "%04d, %04d", nCount, nSystemCount);
+            std::string str = strprintf("%4d, %4d", nCount, nSystemCount);
             result.push_back(Pair(str, ValueFromAmount(nLast)));
         };
         result.push_back(Pair("total currency owned", ValueFromAmount(nTotal)));
@@ -2816,27 +2855,30 @@ Value anoninfo(const Array& params, bool fHelp)
         };
     };
 
-    result.push_back(Pair("No. Exists, No. Spends, Least Depth", "value"));
+    result.push_back(Pair("No. Exists, No. Spends, No. Compromised, Least Depth", "value"));
 
 
     // -- lOutputCounts is ordered by value
     char cbuf[256];
     int64_t nTotalIn = 0;
     int64_t nTotalOut = 0;
+    int64_t nTotalCompromised = 0;
     int64_t nTotalCoins = 0;
     for (std::list<CAnonOutputCount>::iterator it = lOutputCounts.begin(); it != lOutputCounts.end(); ++it)
     {
-        snprintf(cbuf, sizeof(cbuf), "%05d, %05d, %05d", it->nExists, it->nSpends, it->nLeastDepth);
+        snprintf(cbuf, sizeof(cbuf), "%5d, %5d, %7d, %3d", it->nExists, it->nSpends, it->nCompromised, it->nLeastDepth);
         result.push_back(Pair(cbuf, ValueFromAmount(it->nValue)));
 
 
         nTotalIn += it->nValue * it->nExists;
         nTotalOut += it->nValue * it->nSpends;
+        nTotalCompromised += it->nValue * it->nCompromised;
         nTotalCoins += it->nExists;
     };
 
     result.push_back(Pair("total anon value in", ValueFromAmount(nTotalIn)));
     result.push_back(Pair("total anon value out", ValueFromAmount(nTotalOut)));
+    result.push_back(Pair("total anon value compromised", ValueFromAmount(nTotalCompromised)));
     result.push_back(Pair("total anon outputs", nTotalCoins));
 
     return result;
@@ -2858,9 +2900,8 @@ Value reloadanondata(const Array& params, bool fHelp)
     CBlockIndex *pindex = pindexGenesisBlock;
 
     // check from 257000, once anon transactions started
-    if(!fTestNet)
-        while (pindex->nHeight < 257000 && pindex->pnext)
-            pindex = pindex->pnext;
+    while (pindex->nHeight < (fTestNet ? 0 : 257000) && pindex->pnext)
+        pindex = pindex->pnext;
 
     Object result;
     if (pindex)

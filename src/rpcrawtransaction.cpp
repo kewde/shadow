@@ -49,9 +49,9 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
     entry.push_back(Pair("version", tx.nVersion));
     entry.push_back(Pair("time", (int64_t)tx.nTime));
     entry.push_back(Pair("locktime", (int64_t)tx.nLockTime));
-    
+
     std::vector<uint8_t> vchImage;
-    
+
     Array vin;
     BOOST_FOREACH(const CTxIn& txin, tx.vin)
     {
@@ -65,17 +65,24 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
                 && txin.IsAnonInput())
             {
                 txin.ExtractKeyImage(vchImage);
-                
+
                 int nRingSize = txin.ExtractRingSize();
-                
+
                 in.push_back(Pair("keyimage", HexStr(vchImage)));
                 in.push_back(Pair("ringsize", nRingSize));
+
+                CTxDB txdb("r");
+                CKeyImageSpent ski;
+                bool fInMemPool;
+
+                if (GetKeyImage(&txdb, vchImage, ski, fInMemPool))
+                    in.push_back(Pair("value", ValueFromAmount(ski.nValue)));
             } else
             {
                 in.push_back(Pair("txid", txin.prevout.hash.GetHex()));
                 in.push_back(Pair("vout", (int64_t)txin.prevout.n));
             };
-            
+
             Object o;
             o.push_back(Pair("asm", txin.scriptSig.ToString()));
             o.push_back(Pair("hex", HexStr(txin.scriptSig.begin(), txin.scriptSig.end())));
@@ -84,7 +91,7 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
         in.push_back(Pair("sequence", (int64_t)txin.nSequence));
         vin.push_back(in);
     };
-    
+
     entry.push_back(Pair("vin", vin));
     Array vout;
     for (unsigned int i = 0; i < tx.vout.size(); i++)
@@ -407,7 +414,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
                 mapPrevOut[txin.prevout] = mapPrevTx[prevHash].second.vout[txin.prevout.n].scriptPubKey;
         };
     };
-    
+
     bool fGivenKeys = false;
     CBasicKeyStore tempKeystore;
     if (params.size() > 2 && params[2].type() != null_type)
@@ -427,7 +434,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
     {
         EnsureWalletIsUnlocked();
     };
-    
+
     // Add previous txouts given in the RPC call:
     if (params.size() > 1 && params[1].type() != null_type)
     {
@@ -472,7 +479,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
             {
                 mapPrevOut[outpoint] = scriptPubKey;
             };
-            
+
             // if redeemScript given and not using the local wallet (private keys
             // given), add redeemScript to the tempKeystore so it can be signed:
             if (fGivenKeys && scriptPubKey.IsPayToScriptHash())
@@ -487,7 +494,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
             };
         }
     }
-    
+
     const CKeyStore& keystore = (fGivenKeys ? tempKeystore : *pwalletMain);
 
     int nHashType = SIGHASH_ALL;
@@ -521,14 +528,14 @@ Value signrawtransaction(const Array& params, bool fHelp)
             continue;
         };
         const CScript& prevPubKey = mapPrevOut[txin.prevout];
-        
+
         txin.scriptSig.clear();
         // Only sign SIGHASH_SINGLE if there's a corresponding output:
         if (!fHashSingle || (i < mergedTx.vout.size()))
         {
             SignSignature(keystore, prevPubKey, mergedTx, i, nHashType);
         }
-        
+
         // ... and merge in other signatures:
         BOOST_FOREACH(const CTransaction& txv, txVariants)
         {

@@ -250,6 +250,11 @@ public:
         return !(a == b);
     }
 
+    friend bool operator<(const CTxOut& a, const CTxOut& b)
+    {
+        return (a.nValue < b.nValue);
+    }
+
     std::string ToString() const
     {
         if (IsEmpty()) return "CTxOut(empty)";
@@ -335,24 +340,27 @@ public:
         nSpends = 0;
         nOwned = 0;
         nLeastDepth = 0;
+        nCompromised = 0;
     }
 
-    CAnonOutputCount(int64_t nValue_, int nExists_, int nSpends_, int nOwned_, int nLeastDepth_)
+    CAnonOutputCount(int64_t nValue_, int nExists_, int nSpends_, int nOwned_, int nLeastDepth_, int nCompromised_)
     {
         nValue = nValue_;
         nExists = nExists_;
         nSpends = nSpends_;
         nOwned = nOwned_;
         nLeastDepth = nLeastDepth_;
+        nCompromised = nCompromised_;
     }
 
-    void set(int64_t nValue_, int nExists_, int nSpends_, int nOwned_, int nLeastDepth_)
+    void set(int64_t nValue_, int nExists_, int nSpends_, int nOwned_, int nLeastDepth_, int nCompromised_)
     {
         nValue = nValue_;
         nExists = nExists_;
         nSpends = nSpends_;
         nOwned = nOwned_;
         nLeastDepth = nLeastDepth_;
+        nCompromised = nCompromised_;
     }
 
     void addCoin(int nCoinDepth, int64_t nCoinValue)
@@ -401,6 +409,7 @@ public:
     int nSpends;
     int nOwned; // todo
     int nLeastDepth;
+    int nCompromised;
 
 };
 
@@ -410,11 +419,12 @@ class CStakeModifier
 // for CheckKernel
 public:
     CStakeModifier() {};
-    CStakeModifier(uint64_t modifier, int height, int64_t time)
-        : nModifier(modifier), nHeight(height), nTime(time)
+    CStakeModifier(uint64_t modifier, uint256 modifierv2, int height, int64_t time)
+        : nModifier(modifier), bnModifierV2(modifierv2), nHeight(height), nTime(time)
     {};
 
     uint64_t nModifier;
+    uint256 bnModifierV2;
     int nHeight;
     int64_t nTime;
 };

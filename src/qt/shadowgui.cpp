@@ -421,7 +421,7 @@ void ShadowGUI::setNumBlocks(int count, int nTotalBlocks)
     QWebElement syncProgressBar = documentFrame->findFirstElement("#syncProgressBar");
 
     // don't show / hide progress bar and its label if we have no connection to the network
-    if (!clientModel || clientModel->getNumConnections() == 0)
+    if (!clientModel || (clientModel->getNumConnections() == 0 && !clientModel->isImporting()))
     {
         syncProgressBar.setAttribute("style", "display:none;");
 
@@ -460,7 +460,7 @@ void ShadowGUI::setNumBlocks(int count, int nTotalBlocks)
         if (strStatusBarWarnings.isEmpty())
         {
             bridge->networkAlert("");
-            tooltip = tr("Synchronizing with network...");
+            tooltip = tr(clientModel->isImporting() ? "Importing blocks..." : "Synchronizing with network...");
 
             if (nNodeMode == NT_FULL)
             {
@@ -478,10 +478,10 @@ void ShadowGUI::setNumBlocks(int count, int nTotalBlocks)
         }
 
         tooltip += (tooltip.isEmpty()? "" : "\n")
-                 + tr("Downloaded %1 of %2 %3 of transaction history (%4% done).").arg(count).arg(nTotalBlocks).arg(sBlockTypeMulti).arg(nPercentageDone, 0, 'f', 2);
+                 + tr(clientModel->isImporting() ? "Imported " : "Downloaded ") + tr("%1 of %2 %3 of transaction history (%4% done).").arg(count).arg(nTotalBlocks).arg(sBlockTypeMulti).arg(nPercentageDone, 0, 'f', 2);
     } else
     {
-        tooltip = tr("Downloaded %1 blocks of transaction history.").arg(count);
+        tooltip = tr(clientModel->isImporting() ? "Imported " : "Downloaded ") + tr("%1 blocks of transaction history.").arg(count);
     }
 
     // Override progressBarLabel text when we have warnings to display
