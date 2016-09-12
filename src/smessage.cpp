@@ -1331,22 +1331,21 @@ bool SecureMsgReceiveData(CNode* pfrom, std::string strCommand, CDataStream& vRe
 
     /*
         Commands
-        + smsgInv =
+        + smsgInv = contains all bucket headers of sender. receiver responds with smsgShow
             (1) received inventory of other node.
                 (1.1) sanity checks
             (2) loop through buckets
                 (2.1) sanity checks
-                (2.2) check if bucket is locked to another node, if so continue but don't match. TODO: handle this properly, add critical section, lock on write. On read: nothing changes = no lock
+                (2.2) check if bucket is locked to another node, if so continue but don't match. 
                     (2.2.3) If our bucket is not locked to another node then add hash to buffer to be requested..
-            (3) send smsgShow with list of hashes to request.
-
-        + smsgShow =
-        + smsgHave =
-        + smsgWant =
-        + smsgMsg = ??
+            (3) send smsgShow with list of bucket hashes to request.
+        + smsgShow = receiver asks sender of smsgInv to show all buckets with different hash 
+        + smsgHave = response to smsgShow shows all message hashes of requested buckets.
+        + smsgWant = response to smsgHave, 
+        + smsgMsg = contains message
         + smsgPing
         + smsgPong
-        + smsgMatch
+        + smsgMatch = obsolete
 
     */
 
