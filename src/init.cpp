@@ -12,7 +12,7 @@
 #include "sync.h"
 #include "util.h"
 #include "ui_interface.h"
-#include "checkpoints.h"
+
 #include "smessage.h"
 #include "ringsig.h"
 #include "miner.h"
@@ -37,7 +37,7 @@ namespace fs = boost::filesystem;
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
 
-
+static const bool DEFAULT_STOPAFTERBLOCKIMPORT = false;
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -76,12 +76,11 @@ volatile bool fRequestShutdown = false;
 void StartShutdown()
 {
     fRequestShutdown = true;
-};
-
+}
 bool ShutdownRequested()
 {
     return fRequestShutdown;
-};
+}
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -231,7 +230,6 @@ std::string HelpMessage()
     strUsage += "  -externalip=<ip>       " + _("Specify your own public address") + "\n";
     strUsage += "  -onlynet=<net>         " + _("Only connect to nodes in network <net> (IPv4, IPv6 or Tor)") + "\n";
     strUsage += "  -discover              " + _("Discover own IP address (default: 1 when listening and no -externalip)") + "\n";
-    strUsage += "  -irc                   " + _("Find peers using internet relay chat (default: 0)") + "\n";
     strUsage += "  -listen                " + _("Accept connections from outside (default: 1 if no -proxy or -connect)") + "\n";
     strUsage += "  -bind=<addr>           " + _("Bind to given address. Use [host]:port notation for IPv6") + "\n";
     strUsage += "  -dnsseed               " + _("Find peers using DNS lookup (default: 1)") + "\n";
@@ -239,7 +237,6 @@ std::string HelpMessage()
     strUsage += "  -minstakeinterval=<n>  " + _("Minimum time in seconds between successful stakes (default: 30)") + "\n";
     strUsage += "  -minersleep=<n>        " + _("Milliseconds between stake attempts. Lowering this param will not result in more stakes. (default: 500)") + "\n";
     strUsage += "  -synctime              " + _("Sync time with other nodes. Disable if time on your system is precise e.g. syncing with NTP (default: 1)") + "\n";
-    strUsage += "  -cppolicy              " + _("Sync checkpoints policy (default: strict)") + "\n";
     strUsage += "  -banscore=<n>          " + _("Threshold for disconnecting misbehaving peers (default: 100)") + "\n";
     strUsage += "  -bantime=<n>           " + _("Number of seconds to keep misbehaving peers from reconnecting (default: 86400)") + "\n";
     strUsage += "  -softbantime=<n>       " + _("Number of seconds to keep soft banned peers from reconnecting (default: 3600)") + "\n";
@@ -297,6 +294,7 @@ std::string HelpMessage()
     strUsage += "  -checkblocks=<n>       " + _("How many blocks to check at startup (default: 2500, 0 = all)") + "\n";
     strUsage += "  -checklevel=<n>        " + _("How thorough the block verification is (0-6, default: 1)") + "\n";
     strUsage += "  -loadblock=<file>      " + _("Imports blocks from external blk000?.dat file") + "\n";
+    strUsage += "  -maxorphanblocksmib=<n> " + strprintf(_("Keep at most <n> MiB of unconnectable blocks in memory (default: %u)"), DEFAULT_MAX_ORPHAN_BLOCKS) + "\n";	
     strUsage += "  -reindex               " + _("Rebuild block chain index from current blk000?.dat files on startup") + "\n";
 
     strUsage += "\n" + _("Thin options:") + "\n";
@@ -317,7 +315,7 @@ std::string HelpMessage()
     strUsage += "  -rpcssl                                  " + _("Use OpenSSL (https) for JSON-RPC connections") + "\n";
     strUsage += "  -rpcsslcertificatechainfile=<file.cert>  " + _("Server certificate file (default: server.cert)") + "\n";
     strUsage += "  -rpcsslprivatekeyfile=<file.pem>         " + _("Server private key (default: server.pem)") + "\n";
-    strUsage += "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!AH:!3DES:@STRENGTH)") + "\n";
+    strUsage += "  -rpcsslciphers=<ciphers>                 " + _("Acceptable ciphers (default: TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH)") + "\n";
 
     strUsage += "\n" + _("Secure messaging options:") + "\n";
     strUsage += "  -nosmsg                                  " + _("Disable secure messaging.") + "\n";
@@ -427,6 +425,8 @@ bool AppInit2(boost::thread_group& threadGroup)
     nMinStakeInterval = GetArg("-minstakeinterval", 0);
     nMinerSleep = GetArg("-minersleep", 500);
 
+    fUseFastIndex = GetBoolArg("-fastindex", true);
+
     // Largest block you're willing to create.
     // Limit to betweeen 1K and MAX_BLOCK_SIZE-1K for sanity:
     nBlockMaxSize = GetArg("-blockmaxsize", MAX_BLOCK_SIZE_GEN/2);
@@ -453,22 +453,11 @@ bool AppInit2(boost::thread_group& threadGroup)
     if (fDebug)
         LogPrintf("nMinerSleep %u\n", nMinerSleep);
 
-    CheckpointsMode = Checkpoints::STRICT;
-    std::string strCpMode = GetArg("-cppolicy", "strict");
-
-    if (strCpMode == "strict")
-        CheckpointsMode = Checkpoints::STRICT;
-
-    if (strCpMode == "advisory")
-        CheckpointsMode = Checkpoints::ADVISORY;
-
-    if (strCpMode == "permissive")
-        CheckpointsMode = Checkpoints::PERMISSIVE;
 
     nDerivationMethodIndex = 0;
 
-    fTestNet = GetBoolArg("-testnet");
-    
+    fTestNet = GetBoolArg("-testnet", false);
+
     if (!SelectParamsFromCommandLine())
         return InitError("Invalid combination of -testnet and -regtest.");
     
@@ -526,6 +515,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         nStakeMinAge = 1 * 60 * 60; // test net min age is 1 hour
         nCoinbaseMaturity = 10; // test maturity is 10 blocks
+        nStakeMinConfirmations = 10; // test maturity is 10 blocks
     };
 
     // ********************************************************* Step 3: parameter-to-internal-flags
@@ -885,13 +875,6 @@ bool AppInit2(boost::thread_group& threadGroup)
         };
     };
     
-    // TODO: posv2 remove
-    if (mapArgs.count("-checkpointkey")) // ppcoin: checkpoint master priv key
-    {
-        if (!Checkpoints::SetCheckpointPrivKey(GetArg("-checkpointkey", "")))
-            InitError(_("Unable to sign checkpoint, wrong checkpointkey?\n"));
-    };
-
     BOOST_FOREACH(std::string strDest, mapMultiArgs["-seednode"])
         AddOneShot(strDest);
 
@@ -1051,37 +1034,13 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 9: import blocks
 
-
+    std::vector<boost::filesystem::path> vImportFiles;
     if (mapArgs.count("-loadblock"))
     {
-        uiInterface.InitMessage(_("Importing blockchain data file."));
-
         BOOST_FOREACH(std::string strFile, mapMultiArgs["-loadblock"])
-        {
-            FILE* file = fopen(strFile.c_str(), "rb");
-            if (file)
-                LoadExternalBlockFile(0, file);
-            else
-                LogPrintf("Error: -loadblock '%s' - file not found.\n", strFile.c_str());
-        };
-        LogPrintf("Terminating: loadblock completed.\n");
-        Finalise();
-        exit(0);
+            vImportFiles.push_back(strFile);
     };
-
-    fs::path pathBootstrap = GetDataDir() / "bootstrap.dat";
-    if (fs::exists(pathBootstrap))
-    {
-        uiInterface.InitMessage(_("Importing bootstrap blockchain data file."));
-
-        FILE* file = fopen(pathBootstrap.string().c_str(), "rb");
-        if (file)
-        {
-            fs::path pathBootstrapOld = GetDataDir() / "bootstrap.dat.old";
-            LoadExternalBlockFile(0, file);
-            RenameOver(pathBootstrap, pathBootstrapOld);
-        };
-    };
+	threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));
     
     if (mapArgs.count("-reindex"))
     {

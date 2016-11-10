@@ -6,6 +6,7 @@
 #define COIN_STATE_H
 
 #include <string>
+#include <limits>
 #include "sync.h"
 
 enum eNodeType
@@ -54,10 +55,11 @@ const int64_t GENESIS_BLOCK_TIME = 1405769613;
 static const int64_t COIN = 100000000;
 static const int64_t CENT = 1000000;
 
+/** Fees smaller than this (in satoshi) are considered zero fee (for transaction creation) */
 static const int64_t MIN_TX_FEE = 10000;
 static const int64_t MIN_TX_FEE_ANON = 1000000;
+/** Fees smaller than this (in satoshi) are considered zero fee (for relaying) */
 static const int64_t MIN_RELAY_TX_FEE = MIN_TX_FEE;
-static const int64_t MAX_MONEY = 2000000000 * COIN;
 static const int64_t COIN_YEAR_REWARD = 2 * CENT; // 2% per year
 
 static const int64_t MBLK_RECEIVE_TIMEOUT = 60; // seconds
@@ -119,6 +121,8 @@ extern unsigned int nBlockMinSize;
 extern int64_t nMinTxFee;
 
 extern unsigned int nStakeSplitAge;
+extern int nStakeMinConfirmations;
+extern int64_t nStakeSplitThreshold;
 extern int64_t nStakeCombineThreshold;
 
 extern uint32_t nExtKeyLookAhead;

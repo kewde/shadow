@@ -52,6 +52,7 @@ volatile bool fPassGuiAddresses = false; // force the gui to process new address
 
 bool fConfChange;
 bool fEnforceCanonical;
+bool fUseFastIndex;
 unsigned int nNodeLifespan;
 unsigned int nDerivationMethodIndex;
 unsigned int nMinerSleep;
@@ -63,6 +64,7 @@ int64_t nMinTxFee = MIN_TX_FEE;
 
 unsigned int nStakeSplitAge = 1 * 24 * 60 * 60;
 int64_t nStakeCombineThreshold = 1000 * COIN;
+int64_t nStakeSplitThreshold = 2 * nStakeCombineThreshold;
 
 uint32_t nExtKeyLookAhead = 10;
 

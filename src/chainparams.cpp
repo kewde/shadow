@@ -7,7 +7,6 @@
 
 #include "chainparams.h"
 #include "main.h"
-#include "util.h"
 
 #include <boost/assign/list_of.hpp>
 
@@ -32,7 +31,7 @@ int64_t CChainParams::GetProofOfWorkReward(int nHeight, int64_t nFees) const
         nSubsidy = 1 * COIN;
     else
     if (nHeight <= nLastPOWBlock)
-        nSubsidy = 400 * COIN;
+        nSubsidy = (NetworkID() == CChainParams::TESTNET ? 10000 : 400) * COIN;
 
     if (fDebug && GetBoolArg("-printcreation"))
         LogPrintf("GetProofOfWorkReward() : create=%s nSubsidy=%d\n", FormatMoney(nSubsidy).c_str(), nSubsidy);
@@ -41,10 +40,15 @@ int64_t CChainParams::GetProofOfWorkReward(int nHeight, int64_t nFees) const
 };
 
 
-int64_t CChainParams::GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees) const
+int64_t CChainParams::GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees) const
 {
     // miner's coin stake reward based on coin age spent (coin-days)
-    int64_t nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
+    int64_t nSubsidy;
+
+    if (IsProtocolV3(pindexPrev->nHeight))
+        nSubsidy = (pindexPrev->nMoneySupply / COIN) * COIN_YEAR_REWARD / (365 * 24 * (60 * 60 / 64));
+    else
+        nSubsidy = nCoinAge * COIN_YEAR_REWARD * 33 / (365 * 33 + 8);
 
     if (fDebug && GetBoolArg("-printcreation"))
         LogPrintf("GetProofOfStakeReward(): create=%s nCoinAge=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge);
@@ -117,8 +121,12 @@ public:
         genesis.nVersion = 1;
         genesis.nTime    = GENESIS_BLOCK_TIME;
 
-        nLastPOWBlock = 31000;
-        nLastFairLaunchBlock = 120;
+        vSeeds.push_back(CDNSSeedData("main.shadow.cash",  "seed.shadow.cash"));
+        vSeeds.push_back(CDNSSeedData("seed2.shadow.cash", "seed2.shadow.cash"));
+        vSeeds.push_back(CDNSSeedData("seed3.shadow.cash", "seed3.shadow.cash"));
+        vSeeds.push_back(CDNSSeedData("seed4.shadow.cash", "seed4.shadow.cash"));
+        vSeeds.push_back(CDNSSeedData("shadowproject.io",  "seed.shadowproject.io"));
+        vSeeds.push_back(CDNSSeedData("shadowchain.info",  "seed.shadowchain.info"));
     }
     virtual const CBlock& GenesisBlock() const { return genesis; }
     virtual const std::vector<CAddress>& FixedSeeds() const {
@@ -148,7 +156,11 @@ public:
         nRPCPort = 51736;
         nBIP44ID = 0x80000023;
 
+        nLastPOWBlock = 31000;
+        nLastFairLaunchBlock = 120;
+
         nFirstPosv2Block = 453000;
+        nFirstPosv3Block = 783000;
 
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 20); // "standard" scrypt target limit for proof of work, results with 0,000244140625 proof-of-work difficulty
         bnProofOfStakeLimit = CBigNum(~uint256(0) >> 20);
@@ -171,13 +183,6 @@ public:
         base58Prefixes[EXT_ACC_HASH]        = list_of(83).convert_to_container<std::vector<unsigned char> >();          // a
         base58Prefixes[EXT_PUBLIC_KEY_BTC]  = list_of(0x04)(0x88)(0xB2)(0x1E).convert_to_container<std::vector<unsigned char> >(); // xprv
         base58Prefixes[EXT_SECRET_KEY_BTC]  = list_of(0x04)(0x88)(0xAD)(0xE4).convert_to_container<std::vector<unsigned char> >(); // xpub
-
-        vSeeds.push_back(CDNSSeedData("main.shadow.cash",  "seed.shadow.cash"));
-        vSeeds.push_back(CDNSSeedData("seed2.shadow.cash", "seed2.shadow.cash"));
-        vSeeds.push_back(CDNSSeedData("seed3.shadow.cash", "seed3.shadow.cash"));
-        vSeeds.push_back(CDNSSeedData("seed4.shadow.cash", "seed4.shadow.cash"));
-        vSeeds.push_back(CDNSSeedData("shadowproject.io",  "seed.shadowproject.io"));
-        vSeeds.push_back(CDNSSeedData("shadowchain.info",  "seed.shadowchain.info"));
 
         //convertSeed6(vFixedSeeds, pnSeed6_main, ARRAYLEN(pnSeed6_main));
         convertSeeds(vFixedSeeds, pnSeed, ARRAYLEN(pnSeed), nDefaultPort);
@@ -211,7 +216,11 @@ public:
         nRPCPort = 51996;
         nBIP44ID = 0x80000001;
 
-        nFirstPosv2Block = 70149;
+        nLastPOWBlock = 110;
+        nLastFairLaunchBlock = 10;
+
+        nFirstPosv2Block = 110;
+        nFirstPosv3Block = 500;
 
         bnProofOfWorkLimit = CBigNum(~uint256(0) >> 16);
         bnProofOfStakeLimit = CBigNum(~uint256(0) >> 20);
@@ -249,6 +258,9 @@ public:
     CRegTestParams() {
         strNetworkID = "regtest";
         strDataDir = "regtest";
+
+        nFirstPosv2Block = -1;
+        nFirstPosv3Block = -1;
 
         pchMessageStart[0] = 0xfa;
         pchMessageStart[1] = 0xbf;

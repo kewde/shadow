@@ -5,6 +5,7 @@
 #include "init.h"
 #include "walletdb.h"
 #include "guiutil.h"
+#include "ringsig.h"
 
 #ifdef USE_NATIVE_I2P
 #include "i2p.h"
@@ -42,7 +43,7 @@ bool static ApplyProxySettings()
 {
     QSettings settings;
     CService addrProxy(settings.value("addrProxy", "127.0.0.1:9050").toString().toStdString());
-    
+
     if (!settings.value("fUseProxy", false).toBool()) {
         addrProxy = CService();
         return false;
@@ -120,8 +121,8 @@ void OptionsModel::Init()
     visibleTransactions = settings.value("visibleTransactions", "*").toStringList();
     fAutoRingSize = settings.value("fAutoRingSize", false).toBool();
     fAutoRedeemShadow = settings.value("fAutoRedeemShadow", false).toBool();
-    nMinRingSize = settings.value("nMinRingSize", 3).toInt();
-    nMaxRingSize = settings.value("nMaxRingSize", 200).toInt();
+    nMinRingSize = settings.value("nMinRingSize", MIN_RING_SIZE).toInt();
+    nMaxRingSize = settings.value("nMaxRingSize", MAX_RING_SIZE).toInt();
 
     // These are shared with core Bitcoin; we want
     // command-line options to override the GUI settings:

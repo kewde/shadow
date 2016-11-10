@@ -255,8 +255,8 @@ int LogPrintStr(const std::string &str)
     {
         // print to console
         ret = fwrite(str.data(), 1, str.size(), stdout);
-    } else
-    if (fPrintToDebugLog)
+    }
+    else if (fPrintToDebugLog)
     {
         static bool fStartedNewLine = false;
         boost::call_once(&DebugPrintInit, debugPrintInitFlag);
@@ -367,20 +367,6 @@ void ParseString(const string& str, char c, vector<string>& v)
     }
 }
 
-// safeChars chosen to allow simple messages/URLs/email addresses, but avoid anything
-// even possibly remotely dangerous like & or >
-static string safeChars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 .,;_/:?@");
-string SanitizeString(const string& str)
-{
-    string strResult;
-    for (std::string::size_type i = 0; i < str.size(); i++)
-    {
-        if (safeChars.find(str[i]) != std::string::npos)
-            strResult.push_back(str[i]);
-    }
-    return strResult;
-}
-
 
 string FormatMoney(int64_t n, bool fPlus)
 {
@@ -451,6 +437,19 @@ bool ParseMoney(const char* pszIn, int64_t& nRet)
     return true;
 }
 
+// safeChars chosen to allow simple messages/URLs/email addresses, but avoid anything
+// even possibly remotely dangerous like & or >
+static string safeChars("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890 .,;_/:?@");
+string SanitizeString(const string& str)
+{
+    string strResult;
+    for (std::string::size_type i = 0; i < str.size(); i++)
+    {
+        if (safeChars.find(str[i]) != std::string::npos)
+            strResult.push_back(str[i]);
+    }
+    return strResult;
+}
 
 static const signed char phexdigit[256] =
 { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -525,7 +524,6 @@ void ParseParameters(int argc, const char* const argv[])
 {
     mapArgs.clear();
     mapMultiArgs.clear();
-
     for (int i = 1; i < argc; i++)
     {
         std::string str(argv[i]);
@@ -541,7 +539,6 @@ void ParseParameters(int argc, const char* const argv[])
         if (boost::algorithm::starts_with(str, "/"))
             str = "-" + str.substr(1);
 #endif
-
         if (str[0] != '-')
             break;
 
@@ -1025,7 +1022,7 @@ static std::string FormatException(std::exception* pex, const char* pszThread)
 void PrintException(std::exception* pex, const char* pszThread)
 {
     std::string message = FormatException(pex, pszThread);
-    LogPrintf("\n\n************************\n%s\n", message.c_str());
+    LogPrintf("\n\n************************\n%s\n", message);
     fprintf(stderr, "\n\n************************\n%s\n", message.c_str());
     strMiscWarning = message;
     throw;
@@ -1034,7 +1031,7 @@ void PrintException(std::exception* pex, const char* pszThread)
 void PrintExceptionContinue(std::exception* pex, const char* pszThread)
 {
     std::string message = FormatException(pex, pszThread);
-    LogPrintf("\n\n************************\n%s\n", message.c_str());
+    LogPrintf("\n\n************************\n%s\n", message);
     fprintf(stderr, "\n\n************************\n%s\n", message.c_str());
     strMiscWarning = message;
 }
@@ -1230,8 +1227,8 @@ std::string getTimeString(int64_t timestamp, char *buffer, size_t nBuffer)
     struct tm* dt;
     time_t t = timestamp;
     dt = localtime(&t);
-    
-    strftime(buffer, nBuffer, "%Y-%m-%d %H:%M:%S %z", dt); // %Z shows long strings on windows
+
+    strftime(buffer, nBuffer, "%Y-%m-%dT%H:%M:%S%z", dt); // %Z shows long strings on windows
     return std::string(buffer); // copies the null-terminated character sequence
 };
 
@@ -1267,8 +1264,8 @@ void ShrinkDebugFile()
         {
             fwrite(pch, 1, nBytes, file);
             fclose(file);
-        };
-    };
+        }
+    }
 }
 
 //
@@ -1282,8 +1279,7 @@ static int64_t nMockTime = 0;  // For unit testing
 
 int64_t GetTime()
 {
-    if (nMockTime)
-        return nMockTime;
+    if (nMockTime) return nMockTime;
 
     return time(NULL);
 }
@@ -1366,8 +1362,7 @@ void seed_insecure_rand(bool fDeterministic)
     if (fDeterministic)
     {
         insecure_rand_Rz = insecure_rand_Rw = 11;
-    } else
-    {
+    } else {
         uint32_t tmp;
         do {
             RAND_bytes((unsigned char*)&tmp,4);

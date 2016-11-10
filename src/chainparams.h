@@ -17,6 +17,7 @@ typedef unsigned char MessageStartChars[MESSAGE_START_SIZE];
 
 class CAddress;
 class CBlock;
+class CBlockIndex;
 
 struct CDNSSeedData {
     std::string name, host;
@@ -64,6 +65,8 @@ public:
     int GetDefaultPort() const { return nDefaultPort; }
 
     const bool IsProtocolV2(int nHeight) const { return nHeight > nFirstPosv2Block; }
+    const bool IsProtocolV3(int nHeight) const { return nHeight > nFirstPosv3Block; }
+
     const CBigNum& ProofOfWorkLimit() const { return bnProofOfWorkLimit; }
     const CBigNum& ProofOfStakeLimit(int nHeight) const { return IsProtocolV2(nHeight) ? bnProofOfStakeLimitV2 : bnProofOfStakeLimit; }
 
@@ -87,7 +90,7 @@ public:
     int LastFairLaunchBlock() const { return nLastFairLaunchBlock; }
 
     int64_t GetProofOfWorkReward(int nHeight, int64_t nFees) const;
-    int64_t GetProofOfStakeReward(int64_t nCoinAge, int64_t nFees) const;
+    int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees) const;
 
 protected:
     CChainParams() {};
@@ -102,6 +105,7 @@ protected:
     int nBIP44ID;
 
     int nFirstPosv2Block;
+    int nFirstPosv3Block;
     CBigNum bnProofOfWorkLimit;
     CBigNum bnProofOfStakeLimit;
     CBigNum bnProofOfStakeLimitV2;

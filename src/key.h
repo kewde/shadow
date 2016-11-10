@@ -310,10 +310,6 @@ public:
     // Check whether an element of a signature (r or s) is valid.
     static bool CheckSignatureElement(const unsigned char *vch, int len, bool half);
 
-    // Ensure that signature is DER-encoded
-    static bool ReserealizeSignature(std::vector<unsigned char>& vchSig);
-    
-    
     unsigned int GetSerializeSize(int nType, int nVersion) const
     {
         return 33;
