@@ -3645,7 +3645,7 @@ int SecureMsgEncrypt(SecureMessage &smsg, const std::string &addressFrom, const 
 
     if (!HMAC_Init_ex(&ctx, &key_m[0], 32, EVP_sha256(), NULL)
         || !HMAC_Update(&ctx, (uint8_t*) &smsg.timestamp, sizeof(smsg.timestamp))
-        || !HMAC_Update(&ctx, (uint8_t*) &smsg.iv[0], sizeof(smsg.iv)) 
+        || !HMAC_Update(&ctx, (uint8_t*) &smsg.iv, sizeof(smsg.iv)) 
         || !HMAC_Update(&ctx, &vchCiphertext[0], vchCiphertext.size())
         || !HMAC_Final(&ctx, smsg.mac, &nBytes)
         || nBytes != 32)
