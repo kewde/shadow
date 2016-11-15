@@ -5203,8 +5203,9 @@ bool CWallet::EstimateAnonFee(int64_t nValue, int64_t nMaxAmount, int nRingSize,
     return true;
 };
 
-int64_t EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr)
+int64_t CWallet::EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr)
 {
+    std::string sError;
     if (fDebugRingSig)
         LogPrintf("EstimateAnonFeeIncluded()\n");
 
@@ -5227,15 +5228,17 @@ int64_t EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& 
     };
 
     CWalletTx wtx;
-    std::string sError;
+
     int64_t nFeeRet = 0;
     int64_t nValue = nMaxAmount - nTransactionFee;
 
-    while(!EstimateAnonFee(nValue, MaxAmount, nRingSize,sNarr, wtx, nFeeRet, sError) && nValue > 0){
+    while(!EstimateAnonFee(nValue, nMaxAmount, nRingSize,sNarr, wtx, nFeeRet, sError) && nValue > 0){
         nValue = nValue - nTransactionFee;
 
     }
 
+/*    if (fDebugRingSig)
+        LogPrintf("EstimateAnonFeeIncluded(): nFeeRet = %" PRId64 "\n", nFeeRet);*/
 
     return nFeeRet;
 };
