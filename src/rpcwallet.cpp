@@ -2663,11 +2663,12 @@ Value sendanontosdc(const Array& params, bool fHelp)
 
 Value estimateanonfee(const Array& params, bool fHelp)
 {
-    if (fHelp || params.size() < 2 || params.size() > 3)
+    if (fHelp || params.size() < 2 || params.size() > 4)
         throw std::runtime_error(
-            "estimateanonfee <amount> <ring_size> [narration]\n"
+            "estimateanonfee <amount> <ring_size> [included] [narration]\n"
             "<amount>is a real number and is rounded to the nearest 0.000001\n"
-            "<ring_size> is a number of outputs of the same amount to include in the signature");
+            "<ring_size> is a number of outputs of the same amount to include in the signature\n"
+            "[included] if set to 1 then <amount> also includes the fee");
 
     int64_t nAmount = AmountFromValue(params[0]);
 
@@ -2679,19 +2680,35 @@ Value estimateanonfee(const Array& params, bool fHelp)
 
 
     std::string sNarr;
-    if (params.size() > 2 && params[2].type() != null_type && !params[2].get_str().empty())
-        sNarr = params[2].get_str();
+    if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
+        sNarr = params[3].get_str();
 
     if (sNarr.length() > 24)
         throw std::runtime_error("Narration must be 24 characters or less.");
 
+    bool included = false;
 
+    if(params.size() > 2){
+        std::string value   = params[2].get_str();
+        if (IsStringBoolPositive(value)){
+            included = true;
+        }
+    }
+    Object result;
     CWalletTx wtx;
     int64_t nFee = 0;
     std::string sError;
     int64_t nMaxAmount = pwalletMain->GetShadowBalance();
 
-    if (!pwalletMain->EstimateAnonFee(nAmount, nMaxAmount, nRingSize, sNarr, wtx, nFee, sError))
+    if(included){
+        uint64_t nFeeRequired = pwalletMain->EstimateAnonFeeIncluded(nAmount, nRingSize, sNarr, sError);
+        result.push_back(Pair("Required fee", ValueFromAmount(nFeeRequired)));
+        if(nFeeRequired == 0){
+            LogPrintf("EstimateAnonFeeIncluded failed %s\n", sError.c_str());
+            throw JSONRPCError(RPC_WALLET_ERROR, sError);
+        }
+    }
+    else if(!pwalletMain->EstimateAnonFee(nAmount, nMaxAmount, nRingSize, sNarr, wtx, nFee, sError))
     {
         LogPrintf("EstimateAnonFee failed %s\n", sError.c_str());
         throw JSONRPCError(RPC_WALLET_ERROR, sError);
@@ -2699,7 +2716,7 @@ Value estimateanonfee(const Array& params, bool fHelp)
 
     uint32_t nBytes = ::GetSerializeSize(*(CTransaction*)&wtx, SER_NETWORK, PROTOCOL_VERSION);
 
-    Object result;
+
 
     result.push_back(Pair("Estimated bytes", (int)nBytes));
     result.push_back(Pair("Estimated inputs", (int)wtx.vin.size()));

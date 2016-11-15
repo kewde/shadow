@@ -5203,9 +5203,9 @@ bool CWallet::EstimateAnonFee(int64_t nValue, int64_t nMaxAmount, int nRingSize,
     return true;
 };
 
-int64_t CWallet::EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr)
+int64_t CWallet::EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr, std::string& sError)
 {
-    std::string sError;
+
     if (fDebugRingSig)
         LogPrintf("EstimateAnonFeeIncluded()\n");
 
@@ -5231,12 +5231,16 @@ int64_t CWallet::EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std:
 
     int64_t nFeeRet = 0;
     int64_t nValue = nMaxAmount - nTransactionFee;
+    int nFailSafe = 10000;
 
-    while(!EstimateAnonFee(nValue, nMaxAmount, nRingSize,sNarr, wtx, nFeeRet, sError) && nValue > 0){
-        nValue = nValue - nTransactionFee;
+    while(!EstimateAnonFee(nValue, nMaxAmount, nRingSize,sNarr, wtx, nFeeRet, sError) && nFailSafe > 0){
+        nValue = nValue - 10000;
+        LogPrintf("EstimateAnonFeeIncluded(): nValue = %" PRId64 "\n", nValue);
+        nFailSafe--;
 
     }
 
+    LogPrintf("EstimateAnonFeeIncluded(): Dust = %" PRId64 "\n", GetShadowBalance() - nValue - nFeeRet);
 /*    if (fDebugRingSig)
         LogPrintf("EstimateAnonFeeIncluded(): nFeeRet = %" PRId64 "\n", nFeeRet);*/
 
