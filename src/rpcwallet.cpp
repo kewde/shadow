@@ -2689,7 +2689,9 @@ Value estimateanonfee(const Array& params, bool fHelp)
     CWalletTx wtx;
     int64_t nFee = 0;
     std::string sError;
-    if (!pwalletMain->EstimateAnonFee(nAmount, nRingSize, sNarr, wtx, nFee, sError))
+    int64_t nMaxAmount = pwalletMain->GetShadowBalance();
+
+    if (!pwalletMain->EstimateAnonFee(nAmount, nMaxAmount, nRingSize, sNarr, wtx, nFee, sError))
     {
         LogPrintf("EstimateAnonFee failed %s\n", sError.c_str());
         throw JSONRPCError(RPC_WALLET_ERROR, sError);

@@ -5148,7 +5148,7 @@ bool CWallet::ProcessLockedAnonOutputs()
     return true;
 };
 
-bool CWallet::EstimateAnonFee(int64_t nValue, int nRingSize, std::string& sNarr, CWalletTx& wtxNew, int64_t& nFeeRet, std::string& sError)
+bool CWallet::EstimateAnonFee(int64_t nValue, int64_t nMaxAmount, int nRingSize, std::string& sNarr, CWalletTx& wtxNew, int64_t& nFeeRet, std::string& sError)
 {
     if (fDebugRingSig)
         LogPrintf("EstimateAnonFee()\n");
@@ -5168,7 +5168,13 @@ bool CWallet::EstimateAnonFee(int64_t nValue, int nRingSize, std::string& sNarr,
         return false;
     };
 
-    if (nValue + nTransactionFee > GetShadowBalance())
+    if (nMaxAmount <= 0)
+    {
+        sError = "Invalid max amount";
+        return false;
+    };
+
+    if (nValue + nTransactionFee > nMaxAmount)
     {
         sError = "Insufficient shadow funds";
         return false;
@@ -5195,6 +5201,43 @@ bool CWallet::EstimateAnonFee(int64_t nValue, int nRingSize, std::string& sNarr,
     nFeeRet = nFeeRequired;
 
     return true;
+};
+
+int64_t EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr)
+{
+    if (fDebugRingSig)
+        LogPrintf("EstimateAnonFeeIncluded()\n");
+
+    if (nNodeMode != NT_FULL)
+    {
+        sError = _("Error: Must be in full mode.");
+        return 0;
+    };
+
+    if (nMaxAmount <= 0)
+    {
+        sError = "Invalid amount";
+        return 0;
+    };
+
+    if (nMaxAmount > GetShadowBalance())
+    {
+        sError = "Insufficient funds";
+        return 0;
+    };
+
+    CWalletTx wtx;
+    std::string sError;
+    int64_t nFeeRet = 0;
+    int64_t nValue = nMaxAmount - nTransactionFee;
+
+    while(!EstimateAnonFee(nValue, MaxAmount, nRingSize,sNarr, wtx, nFeeRet, sError) && nValue > 0){
+        nValue = nValue - nTransactionFee;
+
+    }
+
+
+    return nFeeRet;
 };
 
 int CWallet::ListUnspentAnonOutputs(std::list<COwnedAnonOutput>& lUAnonOutputs, bool fMatureOnly)
