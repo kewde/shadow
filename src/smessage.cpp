@@ -3928,7 +3928,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
     uint32_t nBytes = 32;
     HMAC_CTX ctx;
     HMAC_CTX_init(&ctx);
-
+    LogPrintf("SecMessageDecrypt: triggerd");
     if (!HMAC_Init_ex(&ctx, &key_m[0], 32, EVP_sha256(), NULL)
         || !HMAC_Update(&ctx, (uint8_t*) &psmsg->timestamp, sizeof(psmsg->timestamp))
         || !HMAC_Update(&ctx, (uint8_t*) &psmsg->iv, sizeof(psmsg->iv)) 
@@ -3936,7 +3936,7 @@ int SecureMsgDecrypt(bool fTestOnly, std::string &address, uint8_t *pHeader, uin
         || !HMAC_Final(&ctx, MAC, &nBytes)
         || nBytes != 32)
         fHmacOk = false;
-
+    LogPrintf("SecMessageDecrypt: triggerd after");
     HMAC_CTX_cleanup(&ctx);
 
     if (!fHmacOk)
