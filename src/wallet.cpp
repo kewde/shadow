@@ -3799,6 +3799,7 @@ bool CWallet::CreateAnonOutputs(CStealthAddress* sxAddress, int64_t nValue, std:
         scriptSendTo << cpkTo;
         scriptSendTo << pkEphem;
 
+        //segmentation fault occurs here when calling estimateanonfee
         if (i == 0 && sNarr.length() > 0)
         {
             std::vector<unsigned char> vchNarr;
@@ -5203,7 +5204,7 @@ bool CWallet::EstimateAnonFee(int64_t nValue, int64_t nMaxAmount, int nRingSize,
     return true;
 };
 
-int64_t CWallet::EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr, std::string& sError)
+int64_t CWallet::EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr, CWalletTx& wtx, std::string& sError)
 {
 
     if (fDebugRingSig)
@@ -5212,37 +5213,56 @@ int64_t CWallet::EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std:
     if (nNodeMode != NT_FULL)
     {
         sError = _("Error: Must be in full mode.");
+
+        if(fDebugRingSig)
+            LogPrintf("EstimateAnonFeeIncluded: must be full node");
+
         return 0;
     };
 
     if (nMaxAmount <= 0)
     {
         sError = "Invalid amount";
+
+        if(fDebugRingSig)
+            LogPrintf("EstimateAnonFeeIncluded: Invalid amount");
+
         return 0;
     };
 
     if (nMaxAmount > GetShadowBalance())
     {
         sError = "Insufficient funds";
+
+        if(fDebugRingSig)
+            LogPrintf("EstimateAnonFeeIncluded: Insufficient balance");
+
         return 0;
     };
 
-    CWalletTx wtx;
 
     int64_t nFeeRet = 0;
     int64_t nValue = nMaxAmount - nTransactionFee;
-    int nFailSafe = 10000;
+    int nFailSafe = 5000;
 
-    while(!EstimateAnonFee(nValue, nMaxAmount, nRingSize,sNarr, wtx, nFeeRet, sError) && nFailSafe > 0){
-        nValue = nValue - 10000;
-        LogPrintf("EstimateAnonFeeIncluded(): nValue = %" PRId64 "\n", nValue);
+    while(!EstimateAnonFee(nValue, nMaxAmount, nRingSize, sNarr, wtx, nFeeRet, sError) && nFailSafe > 0){
+        nValue = nValue - (MIN_TX_FEE_ANON);
         nFailSafe--;
 
     }
 
-    LogPrintf("EstimateAnonFeeIncluded(): Dust = %" PRId64 "\n", GetShadowBalance() - nValue - nFeeRet);
-/*    if (fDebugRingSig)
-        LogPrintf("EstimateAnonFeeIncluded(): nFeeRet = %" PRId64 "\n", nFeeRet);*/
+    //at least 50 SDT as fee, something obviously went wrong
+    if(nFailSafe == 0){
+        LogPrintf("EstimateAnonFeeIncluded: nFaileSafe = 0");
+        return 0;
+    }
+
+    if (fDebugRingSig){
+        LogPrintf("EstimateAnonFeeIncluded: Found value = %" PRId64 "\n", nValue);
+        LogPrintf("EstimateAnonFeeIncluded: Fee = %" PRId64 "\n", nFeeRet);
+        LogPrintf("EstimateAnonFeeIncluded: Dust = %" PRId64 "\n", GetShadowBalance() - nValue - nFeeRet);
+    }
+
 
     return nFeeRet;
 };

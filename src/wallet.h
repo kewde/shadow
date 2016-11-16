@@ -280,7 +280,7 @@ public:
     bool ProcessLockedAnonOutputs();
     
     bool EstimateAnonFee(int64_t nValue, int64_t nMaxAmount, int nRingSize, std::string& sNarr, CWalletTx& wtxNew, int64_t& nFeeRet, std::string& sError);
-    int64_t EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr, std::string& sError);
+    int64_t EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std::string& sNarr, CWalletTx& wtx, std::string& sError);
     
     int ListUnspentAnonOutputs(std::list<COwnedAnonOutput>& lUAnonOutputs, bool fMatureOnly);
     int CountAnonOutputs(std::map<int64_t, int>& mOutputCounts, bool fMatureOnly);

@@ -2678,10 +2678,12 @@ Value estimateanonfee(const Array& params, bool fHelp)
     if (nRingSize < MIN_RING_SIZE || nRingSize > MAX_RING_SIZE)
         ssThrow << "Ring size must be >= " << MIN_RING_SIZE << " and <= " << MAX_RING_SIZE << ".", throw std::runtime_error(ssThrow.str());
 
-
+    LogPrintf("EstimateAnonFee before narration\n");
     std::string sNarr;
     if (params.size() > 3 && params[3].type() != null_type && !params[3].get_str().empty())
         sNarr = params[3].get_str();
+
+    LogPrintf("EstimateAnonFee after narration\n");
 
     if (sNarr.length() > 24)
         throw std::runtime_error("Narration must be 24 characters or less.");
@@ -2701,7 +2703,8 @@ Value estimateanonfee(const Array& params, bool fHelp)
     int64_t nMaxAmount = pwalletMain->GetShadowBalance();
 
     if(included){
-        uint64_t nFeeRequired = pwalletMain->EstimateAnonFeeIncluded(nAmount, nRingSize, sNarr, sError);
+        uint64_t nFeeRequired = pwalletMain->EstimateAnonFeeIncluded(nAmount, nRingSize, sNarr, wtx, sError);
+        result.push_back(Pair("Amount", ValueFromAmount(nAmount - nFeeRequired)));
         result.push_back(Pair("Required fee", ValueFromAmount(nFeeRequired)));
         if(nFeeRequired == 0){
             LogPrintf("EstimateAnonFeeIncluded failed %s\n", sError.c_str());
