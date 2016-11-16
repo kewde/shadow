@@ -2705,7 +2705,7 @@ Value estimateanonfee(const Array& params, bool fHelp)
     if(included){
         uint64_t nFeeRequired = pwalletMain->EstimateAnonFeeIncluded(nAmount, nRingSize, sNarr, wtx, sError);
         result.push_back(Pair("Amount", ValueFromAmount(nAmount - nFeeRequired)));
-        result.push_back(Pair("Required fee", ValueFromAmount(nFeeRequired)));
+        result.push_back(Pair("Estimated fee", ValueFromAmount(nFeeRequired)));
         if(nFeeRequired == 0){
             LogPrintf("EstimateAnonFeeIncluded failed %s\n", sError.c_str());
             throw JSONRPCError(RPC_WALLET_ERROR, sError);
@@ -2724,7 +2724,9 @@ Value estimateanonfee(const Array& params, bool fHelp)
     result.push_back(Pair("Estimated bytes", (int)nBytes));
     result.push_back(Pair("Estimated inputs", (int)wtx.vin.size()));
     result.push_back(Pair("Estimated outputs", (int)wtx.vout.size()));
-    result.push_back(Pair("Estimated fee", ValueFromAmount(nFee)));
+
+    if(!included)
+        result.push_back(Pair("Estimated fee", ValueFromAmount(nFee)));
 
     return result;
 }
