@@ -2696,6 +2696,7 @@ Value estimateanonfee(const Array& params, bool fHelp)
             included = true;
         }
     }
+    
     Object result;
     CWalletTx wtx;
     int64_t nFee = 0;
