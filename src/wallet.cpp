@@ -5258,9 +5258,9 @@ int64_t CWallet::EstimateAnonFeeIncluded(int64_t nMaxAmount, int nRingSize, std:
     }
 
     if (fDebugRingSig){
-        LogPrintf("EstimateAnonFeeIncluded: Found value = %i\n", (int) nValue);
-        LogPrintf("EstimateAnonFeeIncluded: Fee = %i\n", (int) nFeeRet);
-        LogPrintf("EstimateAnonFeeIncluded: Dust = %i\n", (int) (GetShadowBalance() - nValue - nFeeRet));
+        LogPrintf("EstimateAnonFeeIncluded: Found value = %d\n", nValue);
+        LogPrintf("EstimateAnonFeeIncluded: Fee = %d\n", nFeeRet);
+        LogPrintf("EstimateAnonFeeIncluded: Dust = %d\n", (GetShadowBalance() - nValue - nFeeRet));
     }
 
 
