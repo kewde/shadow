@@ -70,7 +70,8 @@ public:
                 if (address.IsBIP32())
                 {
                     addrType = AT_BIP32;
-                } else if (strName.startsWith("group_")){
+                } else if (strName.startsWith("group_"))
+                {
                      //find way to detect group address here, probably need to add extra parameter to address log
                     addrType = AT_Group;
                     strPubkey = parent->pubkeyForAddress(strAddress, false);
@@ -624,6 +625,25 @@ QString AddressTableModel::pubkeyForAddress(const QString &address, const bool l
     }
 
     return index(row, Pubkey).data(Qt::EditRole).toString();
+}
+
+QString AddressTableModel::addressForPubkey(const QString &pubkey) const
+{
+    if (pubkey.isEmpty())
+        return "";
+
+    std::vector<uint8_t> vchTest;
+    
+    
+    DecodeBase58(pubkey.toStdString().c_str(), vchTest);
+    CPubKey cpk(vchTest);
+
+    if (!cpk.IsValid())
+        return "";
+
+    CBitcoinAddress address(cpk.GetID());
+
+    return QString::fromStdString(address.ToString());
 }
 
 int AddressTableModel::lookupAddress(const QString &address) const

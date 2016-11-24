@@ -883,7 +883,7 @@ void ShadowBridge::appendMessage(int row)
                 window->messageModel->index(row, MessageModel::ReceivedDateTime).data().toDateTime().toTime_t(),
                 window->messageModel->index(row, MessageModel::Label)           .data(MessageModel::LabelRole).toString().toHtmlEscaped(),
                 window->messageModel->index(row, MessageModel::Label)           .data().toString().replace("\"","\\\"").replace("\\", "\\\\").replace("/", "\\/").toHtmlEscaped(),
-                window->messageModel->index(row, MessageModel::LabelTo)           .data().toString().replace("\"","\\\"").replace("\\", "\\\\").replace("/", "\\/").toHtmlEscaped(),
+                window->messageModel->index(row, MessageModel::LabelTo)         .data().toString().replace("\"","\\\"").replace("\\", "\\\\").replace("/", "\\/").toHtmlEscaped(),
                 window->messageModel->index(row, MessageModel::ToAddress)       .data().toString().toHtmlEscaped(),
                 window->messageModel->index(row, MessageModel::FromAddress)     .data().toString().toHtmlEscaped(),
                 window->messageModel->index(row, MessageModel::Read)            .data().toBool(),
@@ -919,7 +919,12 @@ bool ShadowBridge::markMessageAsRead(QString key)
 
 QString ShadowBridge::getPubKey(QString address)
 {
-    return addressModel->atm->pubkeyForAddress(address);;
+    return addressModel->atm->pubkeyForAddress(address);
+}
+
+QString ShadowBridge::addressForPubKey(QString pubkey)
+{
+    return addressModel->atm->addressForPubkey(pubkey);
 }
 
 bool ShadowBridge::setPubKey(QString address, QString pubkey)
@@ -931,18 +936,21 @@ bool ShadowBridge::setPubKey(QString address, QString pubkey)
     return res == 0||res == 4;
 }
 
+
+
 bool ShadowBridge::sendMessage(const QString &address, const QString &message, const QString &from)
 {
-    if(!fWalletUnlockMessagingEnabled){
-        WalletModel::UnlockContext ctx(window->walletModel->requestUnlock());
+    bool is_encrypted = window->walletModel->getEncryptionStatus() != WalletModel::Unencrypted;
 
-        // Unlock wallet was cancelled
-        if(!ctx.isValid())
+    //only care about fWalletUnlockMessagingEnabled if wallet is encrypted.
+    if (is_encrypted)
+    {
+        if (!fWalletUnlockMessagingEnabled)
+            window->toggleLock();
+
+        //check again if the unlocked it
+        if (!fWalletUnlockMessagingEnabled)
             return false;
-    }
-
-    if(!fWalletUnlockMessagingEnabled){
-        return false;
     }
 
     MessageModel::StatusCode sendstatus = thMessage->mtm->sendMessage(address, message, from);
@@ -1066,7 +1074,8 @@ QVariantList ShadowBridge::inviteGroupChat(QString qsaddress, QVariantList invit
 
     QString actualLabel = getAddressLabel(qsaddress);
 
-    if(!actualLabel.startsWith("group_")){
+    if (!actualLabel.startsWith("group_"))
+    {
         LogPrintf("[inviteGroupChat] -- This should never happen, if it does please notify devteam.\n");
         QMessageBox::warning(window, tr("Sanity Error!"),
             tr("Error: a sanity check prevented the transfer of a non-group private key, please close your wallet and report this error to the development team as soon as possible."),
